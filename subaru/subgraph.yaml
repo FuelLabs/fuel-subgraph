@@ -1,0 +1,19 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: fuelnet
+    name: Contract
+    network: mainnet
+    source:
+      account: ""
+    mapping:
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ExampleEntity
+      receiptHandlers:
+        - handler: handleReceipt
+      file: ./src/contract.ts

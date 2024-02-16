@@ -13,7 +13,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use crate::chain::Chain;
 
-pub const FUEL_KIND: &str = "fuelnet";
+pub const FUEL_KIND: &str = "fuel";
 const BLOCK_HANDLER_KIND: &str = "block";
 
 /// Runtime representation of a data source.

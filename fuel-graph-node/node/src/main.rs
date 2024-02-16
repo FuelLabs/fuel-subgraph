@@ -23,7 +23,7 @@ use graph::url::Url;
 use graph_chain_arweave::{self as arweave, Block as ArweaveBlock};
 use graph_chain_cosmos::{self as cosmos, Block as CosmosFirehoseBlock};
 use graph_chain_ethereum as ethereum;
-use graph_chain_fuel::{self as fuelnet, Block as FuelBlock};
+use graph_chain_fuel::{self as fuel, Block as FuelBlock};
 use graph_chain_near::{self as near, HeaderOnlyBlock as NearFirehoseHeaderOnlyBlock};
 use graph_chain_starknet::{self as starknet, Block as StarknetBlock};
 use graph_chain_substreams as substreams;
@@ -516,7 +516,7 @@ async fn main() {
             metrics_registry.clone(),
         );
 
-        let fuel_chains = networks_as_chains::<fuelnet::Chain>(
+        let fuel_chains = networks_as_chains::<fuel::Chain>(
             &env_vars,
             &mut blockchain_map,
             &logger,

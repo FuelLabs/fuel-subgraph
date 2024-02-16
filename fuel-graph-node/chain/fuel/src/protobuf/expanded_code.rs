@@ -720,7 +720,7 @@ pub mod chain {
                 let __ret: Result<Box<dyn BlockStream<Chain>>> = {
                     ::core::panicking::panic_fmt(
                         ::core::fmt::Arguments::new_v1(
-                            &["FuelNet does not support polling block stream"],
+                            &["Fuel does not support polling block stream"],
                             &[],
                         ),
                     )
@@ -1212,7 +1212,7 @@ mod data_source {
     };
     use std::{collections::HashSet, sync::Arc};
     use crate::chain::Chain;
-    pub const FUEL_KIND: &str = "fuelnet";
+    pub const FUEL_KIND: &str = "fuel";
     const BLOCK_HANDLER_KIND: &str = "block";
     /// Runtime representation of a data source.
     pub struct DataSource {

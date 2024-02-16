@@ -240,7 +240,7 @@ impl BlockStreamBuilder<Chain> for FuelStreamBuilder {
         _filter: Arc<TriggerFilter>,
         _unified_api_version: UnifiedMappingApiVersion,
     ) -> Result<Box<dyn BlockStream<Chain>>> {
-        panic!("FuelNet does not support polling block stream")
+        panic!("Fuel does not support polling block stream")
     }
 }
 

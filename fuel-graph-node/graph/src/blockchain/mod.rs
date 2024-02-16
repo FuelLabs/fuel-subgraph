@@ -423,7 +423,7 @@ impl fmt::Display for BlockchainKind {
             BlockchainKind::Cosmos => "cosmos",
             BlockchainKind::Substreams => "substreams",
             BlockchainKind::Starknet => "starknet",
-            BlockchainKind::Fuel => "fuelnet",
+            BlockchainKind::Fuel => "fuel",
         };
         write!(f, "{}", value)
     }
@@ -440,7 +440,7 @@ impl FromStr for BlockchainKind {
             "cosmos" => Ok(BlockchainKind::Cosmos),
             "substreams" => Ok(BlockchainKind::Substreams),
             "starknet" => Ok(BlockchainKind::Starknet),
-            "fuelnet" => Ok(BlockchainKind::Fuel),
+            "fuel" => Ok(BlockchainKind::Fuel),
             _ => Err(anyhow!("unknown blockchain kind {}", s)),
         }
     }

@@ -6,7 +6,7 @@ schema:
 dataSources:
   - kind: fuel
     name: Contract
-    network: mainnet
+    network: fuel
     source:
       startBlock: 0
     mapping:

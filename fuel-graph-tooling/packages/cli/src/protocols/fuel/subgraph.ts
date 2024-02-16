@@ -1,7 +1,7 @@
 import immutable from 'immutable';
 import { Subgraph, SubgraphOptions } from '../subgraph';
 
-export default class FuelnetSubgraph implements Subgraph {
+export default class FuelSubgraph implements Subgraph {
   manifest: SubgraphOptions['manifest'];
   resolveFile: SubgraphOptions['resolveFile'];
   protocol: SubgraphOptions['protocol'];

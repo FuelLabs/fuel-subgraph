@@ -22,7 +22,9 @@ import NearSubgraph from './near/subgraph';
 import { SubgraphOptions } from './subgraph';
 import * as SubstreamsManifestScaffold from './substreams/scaffold/manifest';
 import SubstreamsSubgraph from './substreams/subgraph';
-import FuelnetSubgraph from './fuel/subgraph';
+import FuelSubgraph from './fuel/subgraph';
+import * as FuelManifestScaffold from './fuel/scaffold/manifest';
+import * as FuelMappingScaffold from './fuel/scaffold/mapping';
 
 const protocolDebug = debug('graph-cli:protocol');
 
@@ -54,8 +56,8 @@ export default class Protocol {
       case 'cosmos':
         this.config = cosmosProtocol;
         break;
-      case 'fuelnet':
-        this.config = fuelnetProtocol;
+      case 'fuel':
+        this.config = fuelProtocol;
         break;
       case 'ethereum':
         this.config = ethereumProtocol;
@@ -87,7 +89,7 @@ export default class Protocol {
       arweave: ['arweave'],
       ethereum: ['ethereum', 'ethereum/contract'],
       near: ['near'],
-      fuelnet: ['fuelnet'],
+      fuel: ['fuel'],
       cosmos: ['cosmos'],
       substreams: ['substreams'],
     }) as immutable.Collection<ProtocolName, string[]>;
@@ -136,7 +138,7 @@ export default class Protocol {
         'scroll',
       ],
       near: ['near-mainnet', 'near-testnet'],
-      fuelnet: ['fuelnet'],
+      fuel: ['fuelnet'],
       cosmos: [
         'cosmoshub-4',
         'theta-testnet-001', // CosmosHub testnet
@@ -151,7 +153,7 @@ export default class Protocol {
       | 'ethereum'
       | 'near'
       | 'cosmos'
-      | 'fuelnet'
+      | 'fuel'
       | 'substreams'
       // this is temporary, until we have a better way to handle substreams triggers
       | 'substreams/triggers',
@@ -240,7 +242,7 @@ export type ProtocolName =
   | 'ethereum'
   | 'near'
   | 'cosmos'
-  | 'fuelnet'
+  | 'fuel'
   | 'substreams'
   | 'substreams/triggers';
 
@@ -311,17 +313,17 @@ const nearProtocol: ProtocolConfig = {
   mappingScaffold: NearMappingScaffold,
 };
 
-const fuelnetProtocol: ProtocolConfig = {
-  displayName: 'fuelnet',
+const fuelProtocol: ProtocolConfig = {
+  displayName: 'fuel',
   abi: undefined,
   contract: undefined,
   getTypeGenerator: undefined,
   getTemplateCodeGen: undefined,
   getSubgraph(options) {
-    return new FuelnetSubgraph(options);
+    return new FuelSubgraph(options);
   },
-  manifestScaffold: NearManifestScaffold,
-  mappingScaffold: NearMappingScaffold,
+  manifestScaffold: FuelManifestScaffold,
+  mappingScaffold: FuelMappingScaffold,
 };
 
 const substreamsProtocol: ProtocolConfig = {

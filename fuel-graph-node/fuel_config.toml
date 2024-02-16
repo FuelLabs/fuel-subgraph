@@ -36,6 +36,6 @@ provider = [
 #./../../graph-tooling/packages/cli/bin/run create salka1988/sub  --node http://localhost:8020/
 #./../../graph-tooling/packages/cli/bin/run deploy -l v0.1.0  --node http://localhost:8020/ --ipfs http://localhost:5001 salka1988/sub
 
-#graph-tooling ...[chains.fuelnet] is supported by graph-tooling. 
+#graph-tooling ...[chains.fuelnet] is supported by graph-tooling.
 # pnpm install
 # pnpm build

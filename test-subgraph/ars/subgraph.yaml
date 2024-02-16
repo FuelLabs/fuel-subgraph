@@ -1,7 +1,15 @@
-export const source = () => `
-      startBlock: 0`;
-
-export const mapping = () => `
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: fuel
+    name: Contract
+    network: mainnet
+    source:
+      startBlock: 0
+    mapping:
       specVersion: 0.0.5
       schema:
         file: ./schema.graphql
@@ -16,4 +24,4 @@ export const mapping = () => `
               - Block
             blockHandlers:
               - handler: handleBlock
-            file: ./src/mapping.ts`;
+            file: ./src/mapping.ts

@@ -1,0 +1,13 @@
+start:
+  args:
+    - firehose
+    - merger
+    - reader-node
+    - relayer
+  flags:
+    # Specifies the path to the fuel-node binary.
+    reader-node-path: "./../../../../fullstack/fuel-core-with-firehose-node/fuel-core/target/debug/fuel-core"
+    # Flags that will be added to the dummy chain process command
+    reader-node-arguments: run --db-type in-memory --debug
+    # Flags that will be added to the dummy chain process command
+    common-live-blocks-addr: ""

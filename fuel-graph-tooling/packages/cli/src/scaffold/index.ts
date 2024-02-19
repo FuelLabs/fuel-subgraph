@@ -116,7 +116,7 @@ indexerHints:
   prune: auto
 schema:
   file: ./schema.graphql
-dataSources:
+dataSources: ̰
   - kind: ${this.protocol.name}
     name: ${this.contractName}
     network: ${this.network}

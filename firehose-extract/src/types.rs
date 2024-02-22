@@ -62,19 +62,20 @@ impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block
 impl From<(&FuelTransaction, &TxExtra)> for Transaction {
     fn from((tx, tx_extra): (&FuelTransaction, &TxExtra)) -> Self {
         let kind = Some(match tx {
-            FuelTransaction::Script(v) => transaction::Kind::Script((v, &tx_extra.receipts).into()),
+            FuelTransaction::Script(v) => transaction::Kind::Script(v.into()),
             FuelTransaction::Create(v) => transaction::Kind::Create(v.into()),
             FuelTransaction::Mint(v) => transaction::Kind::Mint(v.into()),
         });
         Transaction {
             id: (*tx_extra.id).into(),
+            receipts: tx_extra.receipts.iter().map(Into::into).collect(),
             kind,
         }
     }
 }
 
-impl From<(&FuelScript, &Vec<FuelReceipt>)> for Script {
-    fn from((value, receipts): (&FuelScript, &Vec<FuelReceipt>)) -> Self {
+impl From<&FuelScript> for Script {
+    fn from(value: &FuelScript) -> Self {
         Self {
             script_gas_limit: *value.script_gas_limit(),
             script: value.script().to_vec(),
@@ -88,7 +89,6 @@ impl From<(&FuelScript, &Vec<FuelReceipt>)> for Script {
                 .map(|w| w.as_vec().clone())
                 .collect(),
             receipts_root: value.receipts_root().as_slice().to_owned(),
-            receipts: receipts.iter().map(Into::into).collect(),
         }
     }
 }

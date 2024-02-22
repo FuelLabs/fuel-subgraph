@@ -20,10 +20,11 @@ message Block {
 
 message Transaction {
   bytes id = 1;
+  repeated Receipt receipts = 2;
   oneof kind {
-    Script script = 2;
-    Create create = 3;
-    Mint mint = 4;
+    Script script = 3;
+    Create create = 4;
+    Mint mint = 5;
   }
 }
 
@@ -36,7 +37,6 @@ message Script {
     repeated Output outputs = 6;
     repeated bytes witnesses = 7;
     bytes receipts_root = 8;
-    repeated Receipt receipts = 9;
 }
 
 message Create {

@@ -392,6 +392,26 @@ pub enum IndexForAscTypeId {
     FuelStorageSlotArray = 5420,
     FuelBytesArray = 5421,
     FuelU64Array = 5422,
+
+    FuelReceipt = 5423,
+    FuelReceiptArray = 5424,
+    FuelCallReceipt = 5425,
+    FuelReturnReceipt = 5426,
+    FuelReturnDataReceipt = 5427,
+    FuelPanicReceipt = 5428,
+    FuelRevertReceipt = 5429,
+    FuelLogReceipt = 5430,
+    FuelLogDataReceipt = 5431,
+    FuelTransferReceipt = 5432,
+    FuelTransferOutReceipt = 5433,
+    FuelScriptResultReceipt = 5434,
+    FuelMessageOutReceipt = 5435,
+    FuelMintReceipt = 5436,
+    FuelBurnReceipt = 5437,
+    FuelPanicInstruction = 5438,
+
+
+
     // Continue to add more Fuel type IDs here.
     // e.g.:
     // NextFuelType = 4501,

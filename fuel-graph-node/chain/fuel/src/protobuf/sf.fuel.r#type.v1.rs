@@ -38,7 +38,11 @@ pub struct Block {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Transaction {
-    #[prost(oneof = "transaction::Kind", tags = "1, 2, 3")]
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, repeated, tag = "2")]
+    pub receipts: ::prost::alloc::vec::Vec<Receipt>,
+    #[prost(oneof = "transaction::Kind", tags = "3, 4, 5")]
     pub kind: ::core::option::Option<transaction::Kind>,
 }
 /// Nested message and enum types in `Transaction`.
@@ -46,11 +50,11 @@ pub mod transaction {
     #[allow(clippy::derive_partial_eq_without_eq)]
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Kind {
-        #[prost(message, tag = "1")]
-        Script(super::Script),
-        #[prost(message, tag = "2")]
-        Create(super::Create),
         #[prost(message, tag = "3")]
+        Script(super::Script),
+        #[prost(message, tag = "4")]
+        Create(super::Create),
+        #[prost(message, tag = "5")]
         Mint(super::Mint),
     }
 }
@@ -351,4 +355,330 @@ pub struct TxPointer {
 pub struct Policies {
     #[prost(uint64, repeated, tag = "1")]
     pub values: ::prost::alloc::vec::Vec<u64>,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PanicInstruction {
+    #[prost(uint32, tag = "1")]
+    pub reason: u32,
+    #[prost(uint32, tag = "2")]
+    pub raw_instruction: u32,
+}
+#[graph_runtime_derive::generate_asc_type(
+    kind{call:CallReceipt,
+    return_receipt:ReturnReceipt,
+    return_data:ReturnDataReceipt,
+    panic:PanicReceipt,
+    revert:RevertReceipt,
+    log:LogReceipt,
+    log_data:LogDataReceipt,
+    transfer:TransferReceipt,
+    transfer_out:TransferOutReceipt,
+    script_result:ScriptResultReceipt,
+    message_out:MessageOutReceipt,
+    mint:MintReceipt,
+    burn:BurnReceipt}
+)]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type(
+    kind{call:CallReceipt,
+    return_receipt:ReturnReceipt,
+    return_data:ReturnDataReceipt,
+    panic:PanicReceipt,
+    revert:RevertReceipt,
+    log:LogReceipt,
+    log_data:LogDataReceipt,
+    transfer:TransferReceipt,
+    transfer_out:TransferOutReceipt,
+    script_result:ScriptResultReceipt,
+    message_out:MessageOutReceipt,
+    mint:MintReceipt,
+    burn:BurnReceipt}
+)]
+#[graph_runtime_derive::generate_array_type(Fuel)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Receipt {
+    #[prost(oneof = "receipt::Kind", tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13")]
+    pub kind: ::core::option::Option<receipt::Kind>,
+}
+/// Nested message and enum types in `Receipt`.
+pub mod receipt {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Kind {
+        #[prost(message, tag = "1")]
+        Call(super::CallReceipt),
+        #[prost(message, tag = "2")]
+        ReturnReceipt(super::ReturnReceipt),
+        #[prost(message, tag = "3")]
+        ReturnData(super::ReturnDataReceipt),
+        #[prost(message, tag = "4")]
+        Panic(super::PanicReceipt),
+        #[prost(message, tag = "5")]
+        Revert(super::RevertReceipt),
+        #[prost(message, tag = "6")]
+        Log(super::LogReceipt),
+        #[prost(message, tag = "7")]
+        LogData(super::LogDataReceipt),
+        #[prost(message, tag = "8")]
+        Transfer(super::TransferReceipt),
+        #[prost(message, tag = "9")]
+        TransferOut(super::TransferOutReceipt),
+        #[prost(message, tag = "10")]
+        ScriptResult(super::ScriptResultReceipt),
+        #[prost(message, tag = "11")]
+        MessageOut(super::MessageOutReceipt),
+        #[prost(message, tag = "12")]
+        Mint(super::MintReceipt),
+        #[prost(message, tag = "13")]
+        Burn(super::BurnReceipt),
+    }
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CallReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub amount: u64,
+    #[prost(bytes = "vec", tag = "4")]
+    pub asset_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "5")]
+    pub gas: u64,
+    #[prost(uint64, tag = "6")]
+    pub param1: u64,
+    #[prost(uint64, tag = "7")]
+    pub param2: u64,
+    #[prost(uint64, tag = "8")]
+    pub pc: u64,
+    #[prost(uint64, tag = "9")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReturnReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "2")]
+    pub val: u64,
+    #[prost(uint64, tag = "3")]
+    pub pc: u64,
+    #[prost(uint64, tag = "4")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReturnDataReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "2")]
+    pub ptr: u64,
+    #[prost(uint64, tag = "3")]
+    pub len: u64,
+    #[prost(bytes = "vec", tag = "4")]
+    pub digest: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "5")]
+    pub pc: u64,
+    #[prost(uint64, tag = "6")]
+    pub is: u64,
+    #[prost(bytes = "vec", tag = "7")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PanicReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, optional, tag = "2")]
+    pub reason: ::core::option::Option<PanicInstruction>,
+    #[prost(uint64, tag = "3")]
+    pub pc: u64,
+    #[prost(uint64, tag = "4")]
+    pub is: u64,
+    #[prost(bytes = "vec", tag = "5")]
+    pub contract_id: ::prost::alloc::vec::Vec<u8>,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RevertReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "2")]
+    pub ra: u64,
+    #[prost(uint64, tag = "3")]
+    pub pc: u64,
+    #[prost(uint64, tag = "4")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "2")]
+    pub ra: u64,
+    #[prost(uint64, tag = "3")]
+    pub rb: u64,
+    #[prost(uint64, tag = "4")]
+    pub rc: u64,
+    #[prost(uint64, tag = "5")]
+    pub rd: u64,
+    #[prost(uint64, tag = "6")]
+    pub pc: u64,
+    #[prost(uint64, tag = "7")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LogDataReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "2")]
+    pub ra: u64,
+    #[prost(uint64, tag = "3")]
+    pub rb: u64,
+    #[prost(uint64, tag = "4")]
+    pub ptr: u64,
+    #[prost(uint64, tag = "5")]
+    pub len: u64,
+    #[prost(bytes = "vec", tag = "6")]
+    pub digest: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "7")]
+    pub pc: u64,
+    #[prost(uint64, tag = "8")]
+    pub is: u64,
+    #[prost(bytes = "vec", tag = "9")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub amount: u64,
+    #[prost(bytes = "vec", tag = "4")]
+    pub asset_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "5")]
+    pub pc: u64,
+    #[prost(uint64, tag = "6")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferOutReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub to: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub amount: u64,
+    #[prost(bytes = "vec", tag = "4")]
+    pub asset_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "5")]
+    pub pc: u64,
+    #[prost(uint64, tag = "6")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ScriptResultReceipt {
+    /// Values: Success = 0, Revert = 1, Panic = 2, others allowed
+    #[prost(uint64, tag = "1")]
+    pub result: u64,
+    #[prost(uint64, tag = "2")]
+    pub gas_used: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MessageOutReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub sender: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub recipient: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub amount: u64,
+    #[prost(bytes = "vec", tag = "4")]
+    pub nonce: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "5")]
+    pub len: u64,
+    #[prost(bytes = "vec", tag = "6")]
+    pub digest: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "7")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MintReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub sub_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub contract_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub val: u64,
+    #[prost(uint64, tag = "4")]
+    pub pc: u64,
+    #[prost(uint64, tag = "5")]
+    pub is: u64,
+}
+#[graph_runtime_derive::generate_asc_type()]
+#[graph_runtime_derive::generate_network_type_id(Fuel)]
+#[graph_runtime_derive::generate_from_rust_type()]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BurnReceipt {
+    #[prost(bytes = "vec", tag = "1")]
+    pub sub_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub contract_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag = "3")]
+    pub val: u64,
+    #[prost(uint64, tag = "4")]
+    pub pc: u64,
+    #[prost(uint64, tag = "5")]
+    pub is: u64,
 }

@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
                 tx_data.push(tx.transaction);
                 let receipts = client.receipts(id).await?;
                 tx_extra.push(TxExtra {
-                    id: (*id).into(),
+                    id: *id,
                     receipts: receipts.unwrap_or_default().to_vec(),
                 });
             }

@@ -307,12 +307,14 @@ impl From<&FuelReceipt> for Receipt {
                     pc: *pc,
                     is: *is,
                 }),
-                FuelReceipt::Return { id, val, pc, is } => receipt::Kind::Return(ReturnReceipt {
-                    id: (**id).into(),
-                    val: *val,
-                    pc: *pc,
-                    is: *is,
-                }),
+                FuelReceipt::Return { id, val, pc, is } => {
+                    receipt::Kind::ReturnValue(ReturnReceipt {
+                        id: (**id).into(),
+                        val: *val,
+                        pc: *pc,
+                        is: *is,
+                    })
+                }
                 FuelReceipt::ReturnData {
                     id,
                     ptr,

@@ -369,7 +369,7 @@ pub struct PanicInstruction {
 }
 #[graph_runtime_derive::generate_asc_type(
     kind{call:CallReceipt,
-    return_receipt:ReturnReceipt,
+    return_value:ReturnReceipt,
     return_data:ReturnDataReceipt,
     panic:PanicReceipt,
     revert:RevertReceipt,
@@ -385,7 +385,7 @@ pub struct PanicInstruction {
 #[graph_runtime_derive::generate_network_type_id(Fuel)]
 #[graph_runtime_derive::generate_from_rust_type(
     kind{call:CallReceipt,
-    return_receipt:ReturnReceipt,
+    return_value:ReturnReceipt,
     return_data:ReturnDataReceipt,
     panic:PanicReceipt,
     revert:RevertReceipt,
@@ -413,7 +413,7 @@ pub mod receipt {
         #[prost(message, tag = "1")]
         Call(super::CallReceipt),
         #[prost(message, tag = "2")]
-        ReturnReceipt(super::ReturnReceipt),
+        ReturnValue(super::ReturnReceipt),
         #[prost(message, tag = "3")]
         ReturnData(super::ReturnDataReceipt),
         #[prost(message, tag = "4")]

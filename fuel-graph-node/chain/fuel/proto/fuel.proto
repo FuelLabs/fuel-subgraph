@@ -157,7 +157,7 @@ message PanicInstruction {
 message Receipt {
   oneof kind {
     CallReceipt call = 1;
-    ReturnReceipt return_receipt = 2;
+    ReturnReceipt return_value = 2;
     ReturnDataReceipt return_data = 3;
     PanicReceipt  panic  = 4;
     RevertReceipt revert = 5;
@@ -287,4 +287,3 @@ message BurnReceipt {
   uint64 pc = 4;
   uint64 is = 5;
 }
-

@@ -8,6 +8,9 @@ start:
     # Specifies the path to the fuel-node binary.
     reader-node-path: "./../../../firehose-extract/target/debug/firehose-extract"
     # Flags that will be added to the dummy chain process command
-    reader-node-arguments: 127.0.0.1:4000 0
+    reader-node-arguments: beta-5.fuel.network 0
     # Flags that will be added to the dummy chain process command
     common-live-blocks-addr: ""
+#    common-first-streamable-block: 5775784
+
+

@@ -21,6 +21,8 @@ export namespace fuel {
 
   export class Transaction {
     constructor(
+      public id: Bytes,
+      public receipts: Array<Receipt>,
       public script: Script,
       public create: Create,
       public mint: Mint,
@@ -83,7 +85,6 @@ export namespace fuel {
 
   export class Input {
     constructor(
-      // public kindCase: InputKind,
       public coin_signed: Coin,
       public coin_predicate: Coin,
       public contract: InputContract,
@@ -226,6 +227,23 @@ export namespace fuel {
       public mint: MintReceipt,
       public burn: BurnReceipt,
     ) {}
+
+    kind(): string {
+      if (this.call !== null) return 'call';
+      if (this.return_receipt !== null) return 'return_receipt';
+      if (this.return_data !== null) return 'return_data';
+      if (this.panic !== null) return 'panic';
+      if (this.revert !== null) return 'revert';
+      if (this.log !== null) return 'log';
+      if (this.log_data !== null) return 'log_data';
+      if (this.transfer !== null) return 'transfer';
+      if (this.transfer_out !== null) return 'transfer_out';
+      if (this.script_result !== null) return 'script_result';
+      if (this.message_out !== null) return 'message_out';
+      if (this.mint !== null) return 'mint';
+      if (this.burn !== null) return 'burn';
+      return 'kindCase is not set';
+    }
   }
 
   export class CallReceipt {
@@ -240,6 +258,22 @@ export namespace fuel {
       public pc: u64,
       public is: u64,
     ) {}
+  }
+
+  export enum ReceiptKind {
+    CALL_RECEIPT,
+    RETURN_RECEIPT,
+    RETURN_DATA_RECEIPT,
+    PANIC_RECEIPT,
+    REVERT_RECEIPT,
+    LOG_RECEIPT,
+    LOG_DATA_RECEIPT,
+    TRANSFER_RECEIPT,
+    TRANSFER_OUT_RECEIPT,
+    SCRIPT_RESULT_RECEIPT,
+    MESSAGE_OUT_RECEIPT,
+    MINT_RECEIPT,
+    BURN_RECEIPT,
   }
 
   export class ReturnReceipt {
@@ -332,7 +366,6 @@ export namespace fuel {
 
   export class ScriptResultReceipt {
     constructor(
-      // Values: Success = 0, Revert = 1, Panic = 2, others allowed
       public result: u64,
       public gas_used: u64,
     ) {}
@@ -369,4 +402,5 @@ export namespace fuel {
       public is: u64,
     ) {}
   }
+
 }

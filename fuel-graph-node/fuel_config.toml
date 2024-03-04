@@ -18,24 +18,34 @@ provider = [
     { label = "fuel", details = { type = "firehose", url = "http://localhost:10015" }},
 ]
 
-#ipfs
-#ipfs init & ipfs deamin
+# Ipfs
+# Open Terminal and run:
+# ipfs init & ipfs daemon
 
-#database
+# database
+# Install PostgreSQL and run in Terminal:
 # initdb -D .postgres -E UTF8 --locale=C && pg_ctl -D .postgres -l logfile start && createdb graph-node
+# This script will create a database to store Fuel blocks. If a subgraph is created, it will also be stored in the database.
+# I recommend that if any issues arise, you restart the database by deleting it and then starting it again.
 
-#fuel-firehose
-#./start
+# Firehose-extract
+# cargo build
 
-#graph-node
-#cargo run --bin graph-node -- --config fuel_config.toml --ipfs http://127.0.0.1:5001 --node-id fuel-node-indexer --debug
+# fuel-firehose (in fuelfire.yaml all arguments should be uncommented)
+# ./firehose-fuel/devel/fuelfire/start.sh
 
-#graphql
-#./../../graph-tooling/packages/cli/bin/run codegen
-#./../../graph-tooling/packages/cli/bin/run build
-#./../../graph-tooling/packages/cli/bin/run create salka1988/sub  --node http://localhost:8020/
-#./../../graph-tooling/packages/cli/bin/run deploy -l v0.1.0  --node http://localhost:8020/ --ipfs http://localhost:5001 salka1988/sub
+# fuel-graph-node
+# cargo run --bin graph-node -- --config fuel_config.toml --ipfs http://127.0.0.1:5001 --node-id fuel-node-indexer
 
-#graph-tooling ...[chains.fuelnet] is supported by graph-tooling.
+# fuel-graph-tooling
 # pnpm install
 # pnpm build
+
+# fuel-example-subgraph
+# ./../fuel-graph-tooling/packages/cli/bin/run codegen
+# ./../fuel-graph-tooling/packages/cli/bin/run build
+# ./../fuel-graph-tooling/packages/cli/bin/run create salka1988/sub  --node http://localhost:8020/
+# ../../fuel-graph-tooling/packages/cli/bin/run deploy -l v0.1.0  --node http://localhost:8020/ --ipfs http://localhost:5001 salka1988/sub
+
+
+

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 SCRIPT_DIR=$(dirname "$0")
-ROOT=$(realpath -e "$SCRIPT_DIR/..")
+ROOT=$(realpath "$SCRIPT_DIR/..")
 PROTO_FUEL="$ROOT/proto"
 
 function main() {

@@ -1,14 +1,19 @@
 use clap::Parser;
-use fuel_core_client::client::FuelClient;
-use fuel_core_types::{
-    blockchain::primitives::BlockId, fuel_tx::Transaction, fuel_types::BlockHeight,
+use cynic::QueryBuilder;
+use fuel_core_client::client::{
+    pagination::{PageDirection, PaginationRequest},
+    FuelClient,
 };
+use fuel_core_types::{blockchain::primitives::BlockId, fuel_types::BlockHeight};
 use prost::Message;
 
 mod cli;
+mod query;
 mod types;
 
-use types::{Block, TxExtra};
+use types::Block;
+
+use crate::query::FullBlocksQuery;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,41 +21,43 @@ async fn main() -> anyhow::Result<()> {
 
     let client = FuelClient::new(opt.fuel_url)?;
 
-    let mut height: BlockHeight = opt.height.into();
+    let start_height: BlockHeight = opt.height.into();
+
+    // Get the first prev_id as a special case
+    let prev_id: BlockId = match start_height.pred() {
+        Some(h) => client
+            .block_by_height(h.into())
+            .await?
+            .map(|b| b.id.into())
+            .unwrap_or_default(),
+        None => BlockId::default(),
+    };
+    let mut cursor = Some((*start_height).to_string());
 
     loop {
-        if let Some(block) = client.block_by_height(height.into()).await? {
-            let prev_id: BlockId = match height.pred() {
-                Some(h) => client
-                    .block_by_height(h.into())
-                    .await?
-                    .map(|b| b.id.into())
-                    .unwrap_or_default(),
-                None => BlockId::default(),
-            };
+        let page_req = PaginationRequest::<String> {
+            cursor,
+            results: 64,
+            direction: PageDirection::Forward,
+        };
+        let query = FullBlocksQuery::build(page_req.into());
+        let resp = client.query(query).await?;
+        cursor = resp.blocks.page_info.end_cursor;
 
-            let mut tx_data: Vec<Transaction> = vec![];
-            let mut tx_extra: Vec<TxExtra> = vec![];
-            for id in &block.transactions {
-                let tx = client.transaction(id).await?.unwrap();
-                tx_data.push(tx.transaction);
-                let receipts = client.receipts(id).await?;
-                tx_extra.push(TxExtra {
-                    id: *id,
-                    receipts: receipts.unwrap_or_default().to_vec(),
-                });
-            }
+        for block in resp.blocks.edges.iter() {
+            let block = &block.node;
 
-            let fire_block =
-                Block::from((&block, prev_id, tx_data.as_slice(), tx_extra.as_slice()));
+            let fire_block = Block::from((block, prev_id));
             let out_msg = hex::encode(fire_block.encode_to_vec());
             println!("FIRE PROTO {}", out_msg);
+        }
 
-            height = height.succ().expect("Max height reached.");
-        } else if opt.stop {
-            break;
-        } else {
-            tokio::time::sleep(opt.poll.into()).await;
+        if !resp.blocks.page_info.has_next_page {
+            if opt.stop {
+                break;
+            } else {
+                tokio::time::sleep(opt.poll.into()).await;
+            }
         }
     }
     Ok(())

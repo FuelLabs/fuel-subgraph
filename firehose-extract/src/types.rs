@@ -2,6 +2,7 @@
 include!(concat!(env!("OUT_DIR"), "/sf.fuel.r#type.v1.rs"));
 
 // Type conversions
+use fuel_core_client::client::schema::tx::transparent_receipt::Receipt as TransparentReceipt;
 use fuel_core_client::client::types::Block as FuelClientBlock;
 use fuel_core_types::{
     blockchain::primitives::BlockId,
@@ -21,13 +22,39 @@ use fuel_core_types::{
         Transaction as FuelTransaction, TxId as FuelTxId, TxPointer as FuelTxPointer,
         UtxoId as FuelUtxoId,
     },
+    fuel_types::canonical::Deserialize as _,
 };
 use strum::IntoEnumIterator;
+
+use crate::query::OpaqueTransactionWithId;
 
 /// Extra info used for constructing blocks
 pub struct TxExtra {
     pub id: FuelTxId,
     pub receipts: Vec<FuelReceipt>,
+}
+
+impl From<(&crate::query::FullBlock, BlockId)> for Block {
+    fn from((block, prev_id): (&crate::query::FullBlock, BlockId)) -> Self {
+        Self {
+            id: block.id.0 .0.as_slice().to_owned(),
+            height: block.header.height.clone().into(),
+            da_height: block.header.da_height.clone().into(),
+            msg_receipt_count: block.header.message_receipt_count.clone().into(),
+            tx_root: block.header.transactions_root.0 .0.as_slice().to_owned(),
+            msg_receipt_root: block.header.message_receipt_root.0 .0.as_slice().to_owned(),
+            prev_id: prev_id.as_slice().to_owned(),
+            prev_root: block.header.prev_root.0 .0.as_slice().to_owned(),
+            timestamp: block.header.time.0 .0,
+            application_hash: block.header.application_hash.0 .0.to_vec(),
+            transactions: block
+                .transactions
+                .clone()
+                .into_iter()
+                .map(|tx| tx.into())
+                .collect(),
+        }
+    }
 }
 
 impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block {
@@ -55,6 +82,28 @@ impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block
                 .zip(tx_extra)
                 .map(|(tx, tx_extra)| (tx, tx_extra).into())
                 .collect(),
+        }
+    }
+}
+
+impl From<OpaqueTransactionWithId> for Transaction {
+    fn from(tx: OpaqueTransactionWithId) -> Self {
+        let tx_data = FuelTransaction::decode(&mut tx.raw_payload.0 .0.as_slice())
+            .expect("Invalid tx from client");
+
+        let kind = Some(match tx_data {
+            FuelTransaction::Script(v) => transaction::Kind::Script((&v).into()),
+            FuelTransaction::Create(v) => transaction::Kind::Create((&v).into()),
+            FuelTransaction::Mint(v) => transaction::Kind::Mint((&v).into()),
+        });
+        Transaction {
+            id: (*tx.id.0 .0).into(),
+            receipts: tx
+                .receipts
+                .as_ref()
+                .map(|r| r.into_iter().cloned().map(Into::into).collect())
+                .unwrap_or_default(),
+            kind,
         }
     }
 }
@@ -279,6 +328,123 @@ impl From<&FuelStorageSlot> for StorageSlot {
             key: value.key().to_vec(),
             value: value.value().to_vec(),
         }
+    }
+}
+impl From<TransparentReceipt> for Receipt {
+    fn from(receipt: TransparentReceipt) -> Self {
+        let txr = fuel_core_types::fuel_tx::Receipt::try_from(receipt).unwrap();
+        return (&txr).into();
+
+        // Self {
+        //     kind: Some(match receipt.receipt_type {
+        //         ReceiptType::Call => receipt::Kind::Call(CallReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             to: (*receipt.to.as_ref().unwrap().id.0 .0).into(),
+        //             amount: receipt.amount.unwrap().into(),
+        //             asset_id: (*receipt.asset_id.as_ref().unwrap().0 .0).into(),
+        //             gas: receipt.gas.unwrap().into(),
+        //             param1: receipt.param1.unwrap().into(),
+        //             param2: receipt.param2.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::Return => receipt::Kind::ReturnValue(ReturnReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             val: receipt.val.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::ReturnData => receipt::Kind::ReturnData(ReturnDataReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             ptr: receipt.ptr.unwrap().into(),
+        //             len: receipt.len.unwrap().into(),
+        //             digest: (*receipt.digest.as_ref().unwrap().0 .0).to_vec(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //             data: receipt.data.as_ref().unwrap().0 .0.into(),
+        //         }),
+        //         ReceiptType::Panic => receipt::Kind::Panic(PanicReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             reason: receipt.reason.map(|v| {
+        //                 let v: u64 = v.into();
+        //                 let r: fuel_core_types::fuel_tx::Receipt = v.try_into().unwrap();
+        //                 r.into()
+        //             }),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //             contract_id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //         }),
+        //         ReceiptType::Revert => receipt::Kind::Revert(RevertReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             ra: receipt.ra.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::Log => receipt::Kind::Log(LogReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             ra: receipt.ra.unwrap().into(),
+        //             rb: receipt.rb.unwrap().into(),
+        //             rc: receipt.rc.unwrap().into(),
+        //             rd: receipt.rd.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::LogData => receipt::Kind::LogData(LogDataReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             ra: receipt.ra.unwrap().into(),
+        //             rb: receipt.rb.unwrap().into(),
+        //             ptr: receipt.ptr.unwrap().into(),
+        //             len: receipt.len.unwrap().into(),
+        //             digest: receipt.digest.as_ref().unwrap().0 .0.to_vec(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //             data: receipt.data.as_ref().unwrap().0 .0.into(),
+        //         }),
+        //         ReceiptType::Transfer => receipt::Kind::Transfer(TransferReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             to: (*receipt.to.as_ref().unwrap().id.0 .0).into(),
+        //             amount: receipt.amount.unwrap().into(),
+        //             asset_id: (*receipt.asset_id.as_ref().unwrap().0 .0).into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::TransferOut => receipt::Kind::TransferOut(TransferOutReceipt {
+        //             id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             to: (*receipt.to.as_ref().unwrap().id.0 .0).into(),
+        //             amount: receipt.amount.unwrap().into(),
+        //             asset_id: (*receipt.asset_id.as_ref().unwrap().0 .0).into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::ScriptResult => receipt::Kind::ScriptResult(ScriptResultReceipt {
+        //             result: receipt.result.unwrap().into(),
+        //             gas_used: receipt.gas_used.unwrap().into(),
+        //         }),
+        //         ReceiptType::MessageOut => receipt::Kind::MessageOut(MessageOutReceipt {
+        //             sender: (*receipt.sender.as_ref().unwrap().0 .0).into(),
+        //             recipient: (*receipt.recipient.as_ref().unwrap().0 .0).into(),
+        //             amount: receipt.amount.unwrap().into(),
+        //             nonce: (*receipt.nonce.as_ref().unwrap().0 .0).into(),
+        //             len: receipt.len.unwrap().into(),
+        //             digest: receipt.digest.as_ref().unwrap().0 .0.to_vec(),
+        //             data: receipt.data.as_ref().unwrap().0 .0.into(),
+        //         }),
+        //         ReceiptType::Mint => receipt::Kind::Mint(MintReceipt {
+        //             sub_id: (*receipt.sub_id.as_ref().unwrap().0 .0).into(),
+        //             contract_id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             val: receipt.val.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //         ReceiptType::Burn => receipt::Kind::Burn(BurnReceipt {
+        //             sub_id: (*receipt.sub_id.as_ref().unwrap().0 .0).into(),
+        //             contract_id: (*receipt.contract_id.as_ref().unwrap().0 .0).into(),
+        //             val: receipt.val.unwrap().into(),
+        //             pc: receipt.pc.unwrap().into(),
+        //             is: receipt.is.unwrap().into(),
+        //         }),
+        //     }),
+        // }
     }
 }
 

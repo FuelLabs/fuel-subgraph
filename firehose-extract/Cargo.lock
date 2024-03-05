@@ -766,6 +766,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "cynic",
  "fuel-core-client",
  "fuel-core-types",
  "hex",
@@ -820,9 +821,8 @@ dependencies = [
 
 [[package]]
 name = "fuel-core-client"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed3555027c1362e8ff1b03783399b0baa62911ffcf4254c533f3f32c98982562"
+version = "0.22.2"
+source = "git+https://github.com/FuelLabs/fuel-core?branch=backport/graphql-clone-derives#93d726b1d64f63792109dd4697eab1792da40a9a"
 dependencies = [
  "anyhow",
  "cynic",
@@ -844,11 +844,11 @@ dependencies = [
 
 [[package]]
 name = "fuel-core-types"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91b55088841f6211b3ba452687c301fee4b9d1cf52dc6fc47f940a6681336cff"
+version = "0.22.2"
+source = "git+https://github.com/FuelLabs/fuel-core?branch=backport/graphql-clone-derives#93d726b1d64f63792109dd4697eab1792da40a9a"
 dependencies = [
  "anyhow",
+ "bs58",
  "derive_more",
  "fuel-vm",
  "secrecy",

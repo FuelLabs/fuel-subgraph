@@ -768,6 +768,7 @@ dependencies = [
  "clap",
  "cynic",
  "fuel-core-client",
+ "fuel-core-client-ext",
  "fuel-core-types",
  "hex",
  "humantime",
@@ -841,6 +842,18 @@ dependencies = [
  "tai64",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "fuel-core-client-ext"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d57e92e7f7ba99ed649ce4fea2267e7ed8c933c0ae4ce1365b7a6de743fe8b21"
+dependencies = [
+ "async-trait",
+ "cynic",
+ "fuel-core-client",
+ "fuel-core-types",
 ]
 
 [[package]]

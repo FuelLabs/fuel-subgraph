@@ -2,8 +2,10 @@
 include!(concat!(env!("OUT_DIR"), "/sf.fuel.r#type.v1.rs"));
 
 // Type conversions
-use fuel_core_client::client::schema::tx::transparent_receipt::Receipt as TransparentReceipt;
-use fuel_core_client::client::types::Block as FuelClientBlock;
+use fuel_core_client::client::{
+    schema::tx::transparent_receipt::Receipt as TransparentReceipt, types::Block as FuelClientBlock,
+};
+use fuel_core_client_ext::{FullBlock, OpaqueTransaction};
 use fuel_core_types::{
     blockchain::primitives::BlockId,
     fuel_asm::PanicInstruction as FuelPanicInstruction,
@@ -26,16 +28,14 @@ use fuel_core_types::{
 };
 use strum::IntoEnumIterator;
 
-use crate::query::OpaqueTransactionWithId;
-
 /// Extra info used for constructing blocks
 pub struct TxExtra {
     pub id: FuelTxId,
     pub receipts: Vec<FuelReceipt>,
 }
 
-impl From<(&crate::query::FullBlock, BlockId)> for Block {
-    fn from((block, prev_id): (&crate::query::FullBlock, BlockId)) -> Self {
+impl From<(&FullBlock, BlockId)> for Block {
+    fn from((block, prev_id): (&FullBlock, BlockId)) -> Self {
         Self {
             id: block.id.0 .0.as_slice().to_owned(),
             height: block.header.height.clone().into(),
@@ -86,8 +86,8 @@ impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block
     }
 }
 
-impl From<OpaqueTransactionWithId> for Transaction {
-    fn from(tx: OpaqueTransactionWithId) -> Self {
+impl From<OpaqueTransaction> for Transaction {
+    fn from(tx: OpaqueTransaction) -> Self {
         let tx_data = FuelTransaction::decode(&mut tx.raw_payload.0 .0.as_slice())
             .expect("Invalid tx from client");
 

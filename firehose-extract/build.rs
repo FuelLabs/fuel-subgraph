@@ -1,4 +1,3 @@
-use std::fs;
 use std::io::Result;
 
 fn main() -> Result<()> {
@@ -6,9 +5,6 @@ fn main() -> Result<()> {
         &["type.proto"],
         &["../firehose-fuel/proto/sf/fuel/type/v1/"],
     )?;
-
-    fs::write("target/schema.sdl", fuel_core_client::SCHEMA_SDL)
-        .expect("Unable to write schema file");
 
     Ok(())
 }

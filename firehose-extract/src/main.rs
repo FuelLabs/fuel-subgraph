@@ -4,16 +4,14 @@ use fuel_core_client::client::{
     pagination::{PageDirection, PaginationRequest},
     FuelClient,
 };
+use fuel_core_client_ext::FullBlocksQuery;
 use fuel_core_types::{blockchain::primitives::BlockId, fuel_types::BlockHeight};
 use prost::Message;
 
 mod cli;
-mod query;
 mod types;
 
 use types::Block;
-
-use crate::query::FullBlocksQuery;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

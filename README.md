@@ -53,7 +53,7 @@ cargo run --bin graph-node -- --config fuel_config.toml --ipfs http://127.0.0.1:
 ## Working with Fuel-Subgraphs
 
 ### 1. Install and Build Fuel-Graph-Tooling
-Navigate to Fuel-Graph-Tooling folder and run:
+Navigate to `fuel-graph-tooling` folder and run:
 
 ```bash
 pnpm install

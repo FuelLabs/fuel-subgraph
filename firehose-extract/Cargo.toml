@@ -12,8 +12,8 @@ repository = "https://github.com/FuelLabs/fuel-core"
 [dependencies]
 anyhow = "1.0"
 cynic = "2"
-fuel-core-client = {git = "https://github.com/FuelLabs/fuel-core", branch = "backport/graphql-clone-derives"} # "0.22"
-fuel-core-types = {git = "https://github.com/FuelLabs/fuel-core", branch = "backport/graphql-clone-derives"} # "0.22"
+fuel-core-client = "0.22"
+fuel-core-types = "0.22"
 clap = { version = "4.0", features = ["derive"] }
 hex = "0.4"
 humantime = "2.1"
@@ -23,4 +23,4 @@ strum = "0.24"
 
 [build-dependencies]
 prost-build = { version = "0.12" }
-fuel-core-client = {git = "https://github.com/FuelLabs/fuel-core", branch = "backport/graphql-clone-derives"} # "0.22"
+fuel-core-client = "0.22"

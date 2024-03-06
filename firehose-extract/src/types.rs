@@ -2,7 +2,10 @@
 include!(concat!(env!("OUT_DIR"), "/sf.fuel.r#type.v1.rs"));
 
 // Type conversions
-use fuel_core_client::client::types::Block as FuelClientBlock;
+use fuel_core_client::client::{
+    schema::tx::transparent_receipt::Receipt as TransparentReceipt, types::Block as FuelClientBlock,
+};
+use fuel_core_client_ext::{FullBlock, OpaqueTransaction};
 use fuel_core_types::{
     blockchain::primitives::BlockId,
     fuel_asm::PanicInstruction as FuelPanicInstruction,
@@ -21,6 +24,7 @@ use fuel_core_types::{
         Transaction as FuelTransaction, TxId as FuelTxId, TxPointer as FuelTxPointer,
         UtxoId as FuelUtxoId,
     },
+    fuel_types::canonical::Deserialize as _,
 };
 use strum::IntoEnumIterator;
 
@@ -28,6 +32,29 @@ use strum::IntoEnumIterator;
 pub struct TxExtra {
     pub id: FuelTxId,
     pub receipts: Vec<FuelReceipt>,
+}
+
+impl From<(&FullBlock, BlockId)> for Block {
+    fn from((block, prev_id): (&FullBlock, BlockId)) -> Self {
+        Self {
+            id: block.id.0 .0.as_slice().to_owned(),
+            height: block.header.height.clone().into(),
+            da_height: block.header.da_height.clone().into(),
+            msg_receipt_count: block.header.message_receipt_count.clone().into(),
+            tx_root: block.header.transactions_root.0 .0.as_slice().to_owned(),
+            msg_receipt_root: block.header.message_receipt_root.0 .0.as_slice().to_owned(),
+            prev_id: prev_id.as_slice().to_owned(),
+            prev_root: block.header.prev_root.0 .0.as_slice().to_owned(),
+            timestamp: block.header.time.0 .0,
+            application_hash: block.header.application_hash.0 .0.to_vec(),
+            transactions: block
+                .transactions
+                .clone()
+                .into_iter()
+                .map(|tx| tx.into())
+                .collect(),
+        }
+    }
 }
 
 impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block {
@@ -55,6 +82,28 @@ impl From<(&FuelClientBlock, BlockId, &[FuelTransaction], &[TxExtra])> for Block
                 .zip(tx_extra)
                 .map(|(tx, tx_extra)| (tx, tx_extra).into())
                 .collect(),
+        }
+    }
+}
+
+impl From<OpaqueTransaction> for Transaction {
+    fn from(tx: OpaqueTransaction) -> Self {
+        let tx_data = FuelTransaction::decode(&mut tx.raw_payload.0 .0.as_slice())
+            .expect("Invalid tx from client");
+
+        let kind = Some(match tx_data {
+            FuelTransaction::Script(v) => transaction::Kind::Script((&v).into()),
+            FuelTransaction::Create(v) => transaction::Kind::Create((&v).into()),
+            FuelTransaction::Mint(v) => transaction::Kind::Mint((&v).into()),
+        });
+        Transaction {
+            id: (*tx.id.0 .0).into(),
+            receipts: tx
+                .receipts
+                .as_ref()
+                .map(|r| r.into_iter().cloned().map(Into::into).collect())
+                .unwrap_or_default(),
+            kind,
         }
     }
 }
@@ -279,6 +328,12 @@ impl From<&FuelStorageSlot> for StorageSlot {
             key: value.key().to_vec(),
             value: value.value().to_vec(),
         }
+    }
+}
+impl From<TransparentReceipt> for Receipt {
+    fn from(receipt: TransparentReceipt) -> Self {
+        let txr = fuel_core_types::fuel_tx::Receipt::try_from(receipt).unwrap();
+        (&txr).into()
     }
 }
 

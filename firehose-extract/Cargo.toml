@@ -11,8 +11,10 @@ repository = "https://github.com/FuelLabs/fuel-core"
 
 [dependencies]
 anyhow = "1.0"
-fuel-core-client = "0.21"
-fuel-core-types = "0.21"
+cynic = "2"
+fuel-core-client = "0.22"
+fuel-core-client-ext = "0.1"
+fuel-core-types = "0.22"
 clap = { version = "4.0", features = ["derive"] }
 hex = "0.4"
 humantime = "2.1"

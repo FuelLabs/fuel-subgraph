@@ -44,7 +44,7 @@ Ensure all arguments in `devel/fuelfire/fuelfire.yaml` are uncommented, then run
 ```
 
 ### 5. Run Fuel-Graph-Node
-Navigate to Fuel-Graph-Node folder and run the following command in the terminal:
+Navigate to `fuel-graph-node` folder and run the following command in the terminal:
 
 ```bash
 cargo run --bin graph-node -- --config fuel_config.toml --ipfs http://127.0.0.1:5001 --node-id fuel-node-indexer

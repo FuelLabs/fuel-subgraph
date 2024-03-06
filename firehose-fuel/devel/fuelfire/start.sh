@@ -2,8 +2,9 @@
 
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-clean=
-firefuel="$ROOT/../firefuel"
+CLEAN=
+FIREFUEL="$ROOT/../firefuel"
+BOOTSTRAP="$ROOT/bootstrap.sh"
 
 main() {
   pushd "$ROOT" &> /dev/null
@@ -20,11 +21,14 @@ main() {
 
   set -e
 
-  if [[ $clean == "true" ]]; then
+  if [[ $CLEAN == "true" ]]; then
     rm -rf firehose-data &> /dev/null || true
   fi
 
-  exec $firefuel -c $(basename $ROOT).yaml start "$@"
+  echo "Running the fuelfire bootstrap"
+  $BOOTSTRAP
+
+  exec $FIREFUEL -c "$ROOT/firehose.yaml" start "$@"
 }
 
 usage_error() {

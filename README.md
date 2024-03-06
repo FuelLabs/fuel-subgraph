@@ -30,7 +30,7 @@ createdb graph-node
 `Note:` In case of issues, restart the database by deleting it and then starting it again
 
 ### 3. Build Firehose-Extract
-Navigate to Firehose-Extract folder and run the following command in the terminal:
+Navigate to `firehose-extract` folder and run the following command in the terminal:
 
 ```bash
 cargo build

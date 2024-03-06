@@ -37,10 +37,10 @@ cargo build
 ```
 
 ### 4. Start Fuel-Firehose
-Ensure all arguments in `devel/fuelfire/fuelfire.yaml` are uncommented, then run the following command:
+Navigate to `firehose-fuel` folder and run the following command in the terminal:
 
 ```bash
-./firehose-fuel/devel/fuelfire/start.sh
+./devel/fuelfire/start.sh
 ```
 
 ### 5. Run Fuel-Graph-Node
@@ -60,9 +60,10 @@ pnpm install
 pnpm build
 ```
 
-
 ### 2. Building and Deploying Fuel-Subgraphs
-Initialize a new subgraph using the appropriate [.yaml](fuel-example-subgraph/subgraph.yaml) file, then navigate to the subgraph folder and execute the following commands:
+
+To initialize a new Fuel Subgraph, use the provided Subgraph Manifest file [subgraph.yaml](fuel-example-subgraph/subgraph.yaml).
+Navigate to the Subgraph folder and execute the following commands:
 
 ```bash
 ./../fuel-graph-tooling/packages/cli/bin/run codegen
@@ -70,6 +71,9 @@ Initialize a new subgraph using the appropriate [.yaml](fuel-example-subgraph/su
 ./../fuel-graph-tooling/packages/cli/bin/run create my/new_sub --node http://localhost:8020/
 ./../fuel-graph-tooling/packages/cli/bin/run deploy -l v0.1.0 --node http://localhost:8020/ --ipfs http://localhost:5001 my/new_sub deploy -l v0.1.0 --node http://localhost:8020/ --ipfs http://localhost:5001 my/new_sub
 ```
+
+For more information on initializing a subgraph, you can refer to [The Graph documentation](https://thegraph.com/docs/en/developing/creating-a-subgraph/).
+
 #### For additional information, refer to the following documentation:
 - [firehose](firehose-fuel/README.md)
 - [graph-node](fuel-graph-node/README.md)

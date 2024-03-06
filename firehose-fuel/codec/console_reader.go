@@ -12,6 +12,7 @@ import (
 	"github.com/streamingfast/node-manager/mindreader"
 	"go.uber.org/zap"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -62,7 +63,17 @@ func (r *ConsoleReader) ReadBlock() (out *bstream.Block, err error) {
 		return nil, err
 	}
 
-	return r.blockEncoder.Encode(block)
+	blockEncoded, err := r.blockEncoder.Encode(block)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writeUint32ToFile("last_height.txt", block.Height)
+	if err != nil {
+		return nil, err
+	}
+
+	return blockEncoded, err
 }
 
 const (
@@ -161,4 +172,26 @@ func validateChunk(params []string, count int) error {
 
 func lineError(line string, source error) error {
 	return fmt.Errorf("%w (on line %q)", source, line)
+}
+
+func writeUint32ToFile(filePath string, num uint32) error {
+	file, err := os.Create(filePath)
+
+	if err != nil {
+		return fmt.Errorf("error creating file: %w", err)
+	}
+
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("error closing file: %w", closeErr)
+		}
+	}()
+
+	_, writeErr := fmt.Fprint(file, num)
+
+	if writeErr != nil {
+		return fmt.Errorf("error writing to file: %w", writeErr)
+	}
+
+	return nil
 }

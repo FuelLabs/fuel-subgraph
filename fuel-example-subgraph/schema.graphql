@@ -1,66 +1,11 @@
-type Block @entity {
-  id: Bytes!
-  height: BigInt,
-  da_height: BigInt,
-  msg_receipt_count: BigInt,
-  tx_root: Bytes,
-  msg_receipt_root: Bytes,
-  prev_id: Bytes,
-  prev_root: Bytes,
-  timestamp: BigInt,
-  application_hash: Bytes,
-  transactions: [Transaction!]
+type Asset @entity {
+  id: ID!
+  issuer: AssetIssuer!
+  sub_id: Bytes!
 }
 
-type Transaction @entity {
-  id: String!
-  kindCase: String
-  script: Script
-  create: Create
-  mint: Mint
-}
-type Script @entity {
+type AssetIssuer @entity {
   id: ID!
-  script_gas_limit: BigInt,
-  script: Bytes,
-  script_data: Bytes,
-  receipts_root: Bytes
-  policies: Policies
-}
-#
-type Create @entity{
-  id: ID!
-  bytecode_length: BigInt,
-  bytecode_witness_index: BigInt,
-  witnessesList: Bytes,
-  salt: Bytes
-  policies: Policies
-}
-#
-type Mint @entity {
-  id: ID!
-  tx_pointer: TxPointer,
-  output_contract: OutputContract,
-  mint_asset_id: Bytes
-  mint_amount: BigInt,
-  policies: Policies
-
-}
-
-type OutputContract @entity {
-  id: ID!
-  input_index: BigInt,
-  balance_root: Bytes,
-  state_root: Bytes
-}
-
-type TxPointer @entity {
-  id: ID!
-  block_height: BigInt,
-  tx_index: BigInt
-}
-
-type Policies @entity {
-  id: ID!
-  values: String,
+  num_assets: Int!
+  assets: [Asset!]! @derivedFrom(field: "issuer")
 }

@@ -75,7 +75,7 @@ Navigate to the Subgraph folder and execute the following commands:
 For more information on initializing a subgraph, you can refer to [The Graph documentation](https://thegraph.com/docs/en/developing/creating-a-subgraph/).
 
 #### For additional information, refer to the following documentation:
-- [firehose](firehose-fuel/README.md)
+- [firehose](firehose/firehose-fuel/README.md)
 - [graph-node](fuel-graph-node/README.md)
 - [graph-tooling](fuel-graph-tooling/README.md)
 

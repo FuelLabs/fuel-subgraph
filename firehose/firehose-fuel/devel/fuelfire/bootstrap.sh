@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
 
 FIREHOSE_EXTRACT_BIN="/app/firehose-extract"
 FIREFUEL_BIN="/app/firefuel"

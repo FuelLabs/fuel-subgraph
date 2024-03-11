@@ -5,21 +5,26 @@ set -x
 
 FIREHOSE_EXTRACT_BIN="/app/firehose-extract"
 FIREFUEL_BIN="/app/firefuel"
-STORAGE_DIR="/data/storage-dir/"
+STORAGE_DIR="/data/storage_dir/"
 CHAIN_ID="$1"
 
 if [ -z "$CHAIN_ID" ]; then
-  echo "Usage: $0 CHAIN_ID"
-  return 1
+	echo "Usage: $0 CHAIN_ID"
+	return 1
 fi
 
 HEIGHT_FILE="$STORAGE_DIR/last_height.txt"
 
-((LAST_HEIGHT = $(test -s "$HEIGHT_FILE" && cat "$HEIGHT_FILE" || echo 0) + (LAST_HEIGHT != 0)))
+if [[ -f "$HEIGHT_FILE" ]]; then
+	LAST_HEIGHT="$(cat "$HEIGHT_FILE")"
+	LAST_HEIGHT=$((LAST_HEIGHT + 1))
+else
+	LAST_HEIGHT=0
+fi
 
 TEMPFILE="$(mktemp)"
 
-cat << END > "$TEMPFILE"
+cat <<END >"$TEMPFILE"
 start:
   args:
     - firehose
@@ -34,4 +39,3 @@ END
 
 cd "$STORAGE_DIR"
 exec "$FIREFUEL_BIN" -c "$TEMPFILE" start
-

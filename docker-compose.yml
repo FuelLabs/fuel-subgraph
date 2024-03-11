@@ -1,55 +1,43 @@
 version: '3'
 services:
-#  graph-node:
-#    build:
-#      dockerfile: ./fuel-graph-node/docker/Dockerfile
-#      context: ./fuel-graph-node
-##    ports:
-##      - '8000:8000'
-##      - '8001:8001'
-##      - '8020:8020'
-##      - '8030:8030'
-##      - '8040:8040'
-#    depends_on:
-#      - ipfs
-#      - postgres
-#    environment:
-#      postgres_host: postgres
-#      postgres_user: graph-node
-#      postgres_pass: let-me-in
-#      postgres_db: graph-node
-#      ipfs: 'ipfs:5001'
-#      GRAPH_LOG: info
-#      GRAPH_NODE_CONFIG: /config/ismet.toml
-#    volumes:
-#      - ./ismet.toml:/config/ismet.toml
-#  ipfs:
-#    image: ipfs/kubo:v0.14.0
-#    ports:
-#      - '5001:5001'
-#    volumes:
-#      - ./data/ipfs:/data/ipfs
-#  postgres:
-#    image: postgres:14
-##    ports:
-##      - '5432:5432'
-#    environment:
-#      POSTGRES_USER: salka1988
-#      POSTGRES_PASSWORD: let-me-in
-#      POSTGRES_DB: graph-node
-#      PGDATA: "/var/lib/postgresql/data"
-#      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
-#    volumes:
-#      - ./data/postgres:/var/lib/postgresql/data
+  graph-node:
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: ./fuel-graph-node
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: salka1988
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ipfs: 'ipfs:5001'
+      GRAPH_LOG: info
+      GRAPH_NODE_CONFIG: /config/ismet.toml
+    volumes:
+      - './ismet.toml:/config/ismet.toml'
+  ipfs:
+    image: 'ipfs/kubo:v0.14.0'
+    ports:
+      - '5001:5001'
+    volumes:
+      - './data/ipfs:/data/ipfs'
+  postgres:
+    image: 'postgres:14'
+    environment:
+      POSTGRES_USER: salka1988
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      - './data/postgres:/var/lib/postgresql/data'
   firehose:
+    logging:
+        driver: none
     build:
       context: ./firehose
     volumes:
-      - ./data/firehose:/data/storage_dir
+      - './data/firehose:/data/storage_dir'
     command: beta-5.fuel.network
-
-
-#TODO Change end variables to uppercase,
-# raise health checks to docker compose yaml,
-# purpose of node id
-# deduplicate fuel.proto

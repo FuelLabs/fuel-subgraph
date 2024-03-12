@@ -17,7 +17,7 @@ func main() {
 		Protocol:        "FLC",
 		ProtocolVersion: 1,
 
-		FirstStreamableBlock: 0,
+		FirstStreamableBlock: 1,
 
 		BlockFactory:         func() firecore.Block { return new(pbfuel.Block) },
 		ConsoleReaderFactory: codec.NewConsoleReader,

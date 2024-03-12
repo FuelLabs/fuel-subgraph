@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
     let start_height: BlockHeight = opt.height.into();
 
     // Get the first prev_id as a special case
-    let prev_id: BlockId = match start_height.pred() {
+    let mut prev_id: BlockId = match start_height.pred() {
         Some(h) => client
             .block_by_height(h.into())
             .await?
@@ -48,6 +48,8 @@ async fn main() -> anyhow::Result<()> {
             let fire_block = Block::from((block, prev_id));
             let out_msg = hex::encode(fire_block.encode_to_vec());
             println!("FIRE PROTO {}", out_msg);
+
+            prev_id = block.id.0 .0.into();
         }
 
         if !resp.blocks.page_info.has_next_page {

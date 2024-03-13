@@ -31,9 +31,11 @@ services:
       POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
     volumes:
       - './data/postgres:/var/lib/postgresql/data'
-  firehose:
-    build:
-      context: ./firehose
-    volumes:
-      - './data/firehose:/data/storage_dir'
-    command: beta-5.fuel.network
+#  firehose:
+#    build:
+#      context: ./firehose
+##    ports:
+##      - "10015:10015"
+#    volumes:
+#      - './data/firehose:/data/storage_dir'
+#    command: beta-5.fuel.network

@@ -16,7 +16,6 @@ HEIGHT_FILE="$STORAGE_DIR/last_height.txt"
 
 if [[ -f "$HEIGHT_FILE" ]]; then
 	LAST_HEIGHT="$(cat "$HEIGHT_FILE")"
-	LAST_HEIGHT=$((LAST_HEIGHT + 1))
 else
 	LAST_HEIGHT=0
 fi
@@ -28,7 +27,7 @@ start:
   args:
     - firehose
     - merger
-    - reader-node
+#    - reader-node
     - relayer
   flags:
     reader-node-path: "$FIREHOSE_EXTRACT_BIN"

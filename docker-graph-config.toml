@@ -5,7 +5,8 @@ indexers = ["fuel-node-indexer"]
 
 [store]
 [store.primary]
-connection = "postgresql://postgre_user:postgre_pass@postgres:5432/graph-node"
+#connection = "postgresql://postgre _user:postgre_pass@postgres:5432/graph-node"
+connection = "postgresql://postgre_user:postgre_pass@postgres:5432/postgres_db"
 pool_size = 10
 
 [chains]

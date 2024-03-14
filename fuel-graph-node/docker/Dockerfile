@@ -103,5 +103,5 @@ ADD docker/wait_for docker/start /usr/local/bin/
 COPY --from=graph-node-build /usr/local/bin/graph-node /usr/local/bin/graphman /usr/local/bin/
 COPY --from=graph-node-build /etc/image-info /etc/image-info
 COPY --from=envsubst /go/bin/envsubst /usr/local/bin/
-#COPY docker/Dockerfile /Dockerfile
+COPY docker/Dockerfile /Dockerfile
 CMD ["start"]

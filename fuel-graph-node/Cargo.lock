@@ -161,16 +161,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eab1c04a571841102f5345a8fc0f6bb3d31c315dec879b5c6e42e40ce7ffa34e"
 
 [[package]]
-name = "assert-json-diff"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47e4f2b81832e72834d7518d8487a0396a28cc408186a2e8854c0f98011faf12"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "async-recursion"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1841,21 +1831,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "graph-runtime-test"
-version = "0.33.0"
-dependencies = [
- "graph",
- "graph-chain-ethereum",
- "graph-core",
- "graph-runtime-derive",
- "graph-runtime-wasm",
- "rand",
- "semver",
- "test-store",
- "wasmtime",
-]
-
-[[package]]
 name = "graph-runtime-wasm"
 version = "0.33.0"
 dependencies = [
@@ -1985,34 +1960,6 @@ dependencies = [
  "serde",
  "stable-hash 0.3.4",
  "uuid",
-]
-
-[[package]]
-name = "graph-tests"
-version = "0.33.0"
-dependencies = [
- "anyhow",
- "assert-json-diff",
- "async-stream",
- "futures 0.3.16",
- "graph",
- "graph-chain-ethereum",
- "graph-chain-substreams",
- "graph-core",
- "graph-graphql",
- "graph-node",
- "graph-runtime-wasm",
- "graph-server-index-node",
- "graph-store-postgres",
- "graphql-parser",
- "hyper",
- "secp256k1",
- "serde",
- "serde_yaml",
- "slog",
- "termcolor",
- "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -4482,26 +4429,6 @@ checksum = "633c1a546cee861a1a6d0dc69ebeca693bf4296661ba7852b9d21d159e0506df"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "test-store"
-version = "0.33.0"
-dependencies = [
- "diesel",
- "graph",
- "graph-chain-ethereum",
- "graph-core",
- "graph-graphql",
- "graph-node",
- "graph-store-postgres",
- "graphql-parser",
- "hex",
- "hex-literal 0.4.1",
- "lazy_static",
- "pretty_assertions",
- "prost-types",
- "serde",
 ]
 
 [[package]]

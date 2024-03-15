@@ -1,9 +1,8 @@
 version: '3'
 services:
   graph-node:
-    build:
-      dockerfile: ./docker/Dockerfile
-      context: ./fuel-graph-node
+    image: 'ghcr.io/fuellabs/fuel-graph-node:6701915'
+    platform: linux/amd64
     depends_on:
       - ipfs
       - postgres

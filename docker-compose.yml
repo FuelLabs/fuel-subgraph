@@ -4,22 +4,35 @@ services:
     image: 'ghcr.io/fuellabs/fuel-graph-node:6701915'
     platform: linux/amd64
     depends_on:
-      - ipfs
-      - postgres
+      ipfs:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
-      postgres_host: postgres
+      POSTGRES_USER: postgres
       postgres_user: "${DB_USER}"
-      postgres_pass: "${DB_PASS}"
-      postgres_db: "${DB_NAME}"
-      ipfs: 'ipfs:5001'
+      POSTGRES_PASSWORD: "${DB_PASS}"
+      POSTGRES_DB: "${DB_NAME}"
+      IPFS: 'ipfs:5001'
       GRAPH_LOG: info
       GRAPH_NODE_CONFIG: /config/docker-graph-config.toml
     volumes:
       - './docker-graph-config.toml:/config/docker-graph-config.toml'
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
   ipfs:
-    image: 'ipfs/kubo:v0.14.0'
+    image: 'ipfs/kubo:v0.15.0'
     volumes:
       - './data/ipfs:/data/ipfs'
+    healthcheck:
+        test: ["CMD", "ipfs", "id"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
   postgres:
     image: 'postgres:14'
     environment:
@@ -30,11 +43,14 @@ services:
       POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
     volumes:
       - './data/postgres:/var/lib/postgresql/data'
-#  firehose:
-#    build:
-#      context: ./firehose
-##    ports:
-##      - "10015:10015"
-#    volumes:
-#      - './data/firehose:/data/storage_dir'
-#    command: beta-5.fuel.network
+    healthcheck:
+        test: ["CMD", "pg_isready", "-q", "-d", "${DB_NAME}", "-U", "${DB_USER}"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
+  firehose:
+    build:
+      context: ./firehose
+    volumes:
+      - './data/firehose:/data/storage_dir'
+    command: beta-5.fuel.network

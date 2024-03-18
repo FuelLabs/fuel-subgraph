@@ -1,7 +1,7 @@
 [deployment]
 [[deployment.rule]]
 shards = "primary"
-indexers = [ "fuel-node-indexer" ]
+indexers = ["default"]
 
 [store]
 [store.primary]

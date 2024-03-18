@@ -1,12 +1,11 @@
 [deployment]
 [[deployment.rule]]
 shards = "primary"
-indexers = ["fuel-node-indexer"]
+indexers = ["default"]
 
 [store]
 [store.primary]
 connection = "postgresql://salka1988:let-me-in@postgres:5432/graph-node"
-#connection = "postgresql://${DB_USER}:${DB_PASS}@postgres:5432/${DB_NAME}"
 pool_size = 10
 
 [chains]

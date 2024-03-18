@@ -9,8 +9,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      POSTGRES_USER: postgres
-      postgres_user: "${DB_USER}"
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASS}"
       POSTGRES_DB: "${DB_NAME}"
       IPFS: 'ipfs:5001'
@@ -28,6 +28,8 @@ services:
     image: 'ipfs/kubo:v0.15.0'
     volumes:
       - './data/ipfs:/data/ipfs'
+    ports:
+      - '5001:5001'
     healthcheck:
         test: ["CMD", "ipfs", "id"]
         interval: 10s

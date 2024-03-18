@@ -4,12 +4,12 @@ members = [
     "chain/*",
     "graphql",
     "node",
-    "runtime/*",
+    "runtime/derive",
+    "runtime/wasm",
     "server/*",
-    "store/*",
+    "store/postgres",
     "substreams/*",
     "graph",
-    "tests",
 ]
 
 [workspace.package]

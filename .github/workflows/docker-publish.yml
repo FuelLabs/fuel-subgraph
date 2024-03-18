@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-#      - salka1988/add_ci
   pull_request:
     types: [opened, synchronize]
   release:
@@ -19,7 +18,7 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2204
     if: |
       (github.event_name == 'release' && github.event.action == 'published') ||
-      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/salka1988/add_ci' || github.event_name == 'pull_request' 
+      github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v3
 

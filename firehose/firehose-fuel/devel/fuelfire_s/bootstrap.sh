@@ -3,7 +3,8 @@
 set -o errexit
 set -o pipefail
 
-CHAIN_ID=${CHAIN_ID:-"beta-5.fuel.network"}
+#CHAIN_ID=${CHAIN_ID:-"beta-5.fuel.network"}
+CHAIN_ID=${CHAIN_ID:-"http://127.0.0.1:4000"}
 HEIGHT_FILE="last_height.txt"
 
 if [[ -f "$HEIGHT_FILE" ]]; then
@@ -22,7 +23,7 @@ start:
   args:
     - firehose
     - merger
-    - reader-node
+#    - reader-node
     - relayer
   flags:
     reader-node-path: "./../../../firehose-extract/target/debug/firehose-extract"

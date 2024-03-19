@@ -18,7 +18,7 @@ fuel-core-types = "0.22"
 clap = { version = "4.0", features = ["derive"] }
 hex = "0.4"
 humantime = "2.1"
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 prost = "0.12"
 strum = "0.24"
 

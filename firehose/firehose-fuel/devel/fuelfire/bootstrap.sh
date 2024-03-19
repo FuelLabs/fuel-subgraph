@@ -27,7 +27,7 @@ start:
   args:
     - firehose
     - merger
-#    - reader-node
+    - reader-node
     - relayer
   flags:
     reader-node-path: "$FIREHOSE_EXTRACT_BIN"

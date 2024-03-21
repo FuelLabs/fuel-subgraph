@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     loop {
         let page_req = PaginationRequest::<String> {
             cursor,
-            results: 1,
+            results: 64,
             direction: PageDirection::Forward,
         };
         let query = FullBlocksQuery::build(page_req.into());

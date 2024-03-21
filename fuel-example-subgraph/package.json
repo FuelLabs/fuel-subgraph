@@ -15,7 +15,6 @@
     "@graphprotocol/graph-ts": "../fuel-graph-tooling/packages/ts",
     "@oclif/core": "^3.19.1",
     "protobufjs": "^7.2.6",
-    "fuels": "0.77.0"
   },
   "devDependencies": {
     "as-proto-gen": "^1.3.0",

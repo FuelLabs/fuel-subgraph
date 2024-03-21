@@ -61,7 +61,6 @@ function saveTransactions(id: Bytes, transactions: fuel.Transaction[]): string[]
     //   }
     // }
 
-
     transaction_sc.save();
     txs.push(transaction_sc.id)
   }

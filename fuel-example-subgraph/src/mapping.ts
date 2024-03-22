@@ -16,50 +16,48 @@ function saveTransactions(id: Bytes, transactions: fuel.Transaction[]): string[]
 
     if (transaction_sc.kindCase == "mint") {
       let mint = new Mint(transaction.id.toHexString())
-      mint.mint_asset_id = transaction.mint.mint_asset_id
-      mint.mint_amount = BigInt.fromU64(transaction.mint.mint_amount)
-
-      let tx_pointer = new TxPointer(transaction.id.toHexString())
-      tx_pointer.block_height = BigInt.fromU32(transaction.mint.tx_pointer.block_height)
-      tx_pointer.tx_index = BigInt.fromU32(transaction.mint.tx_pointer.tx_index)
-
-      let output_contract = new OutputContract(transaction.id.toHexString())
-      output_contract.input_index = BigInt.fromU32(transaction.mint.output_contract.input_index)
-      output_contract.balance_root = transaction.mint.output_contract.balance_root
-      output_contract.state_root = transaction.mint.output_contract.state_root
-
-      mint.tx_pointer = tx_pointer.id
-      mint.output_contract = output_contract.id
-      transaction_sc.mint = mint.id
-
-      let policies = new Policies(transaction.id.toHexString())
-      policies.values = "example_value".toString()
-
-      mint.policies = policies.id
-
-      policies.save()
-      output_contract.save()
-      tx_pointer.save()
+      // mint.mint_asset_id = transaction.mint.mint_asset_id
+      // mint.mint_amount = BigInt.fromU64(transaction.mint.mint_amount)
+      //
+      // let tx_pointer = new TxPointer(transaction.id.toHexString())
+      // tx_pointer.block_height = BigInt.fromU32(transaction.mint.tx_pointer.block_height)
+      // tx_pointer.tx_index = BigInt.fromU32(transaction.mint.tx_pointer.tx_index)
+      //
+      // let output_contract = new OutputContract(transaction.id.toHexString())
+      // output_contract.input_index = BigInt.fromU32(transaction.mint.output_contract.input_index)
+      // output_contract.balance_root = transaction.mint.output_contract.balance_root
+      // output_contract.state_root = transaction.mint.output_contract.state_root
+      //
+      // mint.tx_pointer = tx_pointer.id
+      // mint.output_contract = output_contract.id
+      // transaction_sc.mint = mint.id
+      //
+      // let policies = new Policies(transaction.id.toHexString())
+      // policies.values = "example_value".toString()
+      //
+      // mint.policies = policies.id
+      //
+      // policies.save()
+      // output_contract.save()
+      // tx_pointer.save()
       mint.save()
       transaction_sc.mint = mint.id
     }
 
-    // if (transaction_sc.kindCase == "script") {
-    //   let script = new Script(transaction.id.toHexString());
-    //   let predicateIndex = transaction.script.inputsList.findIndex(i => i.coin_predicate.predicate_data.length);
-    //
-    //   function decode(bytes: Bytes) {
-    //     return [bytes.slice(0, 8), bytes.slice(8, 16)]
-    //   }
-    //
-    //   if (predicateIndex > -1) {
-    //     //  decode predicate data
-    //     const [amount_of_order, order_id] = decode(transaction.script.inputsList[predicateIndex]?.coin_predicate.predicate_data);
-    //
-    //     script.amount = amount_of_order;
-    //     script.order_id = order_id;
-    //   }
-    // }
+    if (transaction_sc.kindCase == "script") {
+      let script = new Script(transaction.id.toHexString());
+
+      script.save()
+      transaction_sc.script = script.id
+    }
+
+    if (transaction_sc.kindCase == "create") {
+      let create = new Create(transaction.id.toHexString());
+
+
+      create.save()
+      transaction_sc.create = create.id
+    }
 
     transaction_sc.save();
     txs.push(transaction_sc.id)

@@ -33,6 +33,10 @@ start:
     reader-node-path: "$FIREHOSE_EXTRACT_BIN"
     reader-node-arguments: $CHAIN_ID $LAST_HEIGHT
     common-live-blocks-addr: ""
+    merger-prune-forked-blocks-after: 50
+#    reader-node-start-block-num:
+#    reader-node-stop-block-num: 500
+#    merger-time-between-store-pruning: 1s
 END
 
 cd "$STORAGE_DIR"

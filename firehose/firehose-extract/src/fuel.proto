@@ -29,33 +29,33 @@ message Transaction {
 }
 
 message Script {
-    uint64 script_gas_limit = 1;
-    bytes script = 2;
-    bytes script_data = 3;
-    Policies policies = 4;
-    repeated Input inputs = 5;
-    repeated Output outputs = 6;
-    repeated bytes witnesses = 7;
-    bytes receipts_root = 8;
+  uint64 script_gas_limit = 1;
+  bytes script = 2;
+  bytes script_data = 3;
+  Policies policies = 4;
+  repeated Input inputs = 5;
+  repeated Output outputs = 6;
+  repeated bytes witnesses = 7;
+  bytes receipts_root = 8;
 }
 
 message Create {
-    uint64 bytecode_length = 1;
-    uint32 bytecode_witness_index = 2;
-    Policies policies = 3;
-    repeated StorageSlot storage_slots = 4;
-    repeated Input inputs = 5;
-    repeated Output outputs = 6;
-    repeated bytes witnesses = 7;
-    bytes salt = 8;
+  uint64 bytecode_length = 1;
+  uint32 bytecode_witness_index = 2;
+  Policies policies = 3;
+  repeated StorageSlot storage_slots = 4;
+  repeated Input inputs = 5;
+  repeated Output outputs = 6;
+  repeated bytes witnesses = 7;
+  bytes salt = 8;
 }
 
 message Mint {
-    TxPointer tx_pointer = 1;
-    InputContract input_contract = 2;
-    OutputContract output_contract = 3;
-    uint64 mint_amount = 4;
-    bytes mint_asset_id = 5;
+  TxPointer tx_pointer = 1;
+  InputContract input_contract = 2;
+  OutputContract output_contract = 3;
+  uint64 mint_amount = 4;
+  bytes mint_asset_id = 5;
 }
 
 message Input {
@@ -106,9 +106,9 @@ message Output {
 }
 
 message OutputCoin {
-    bytes to = 1;
-    uint64 amount = 2;
-    bytes asset_id = 3;
+  bytes to = 1;
+  uint64 amount = 2;
+  bytes asset_id = 3;
 }
 
 message OutputContractCreated {
@@ -287,4 +287,3 @@ message BurnReceipt {
   uint64 pc = 4;
   uint64 is = 5;
 }
-

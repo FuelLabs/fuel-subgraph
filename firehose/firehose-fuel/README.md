@@ -1,4 +1,4 @@
-# Firehose Starter for new blockchain integrations
+**# Firehose Starter for new blockchain integrations
 [![reference](https://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](https://pkg.go.dev/github.com/FuelLabs/firehose-fuel)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -18,7 +18,7 @@ However if for now suggest to install from source (the tool `sfreleaser` is stil
 go install github.com/streamingfast/sfreleaser@latest
 ```
 
-It will ask you questions as well as driving all the required commands, performing the necessary operation automatically. The release is pushed in draft mode by default, so you can test check the whole flow before publishing (See configuration file [.sfreleaser](./.sfreleaser) for some extra details).
+It will ask you questions as well as driving all the required commands, performing the necessary operation automatically. The release is pushed in draft mode by default, so you can test check the whole flow before publishing (See configuration file [.sfreleaser](.sfreleaser) for some extra details).
 
 You will need to have for releases:
 - [Docker](https://docs.docker.com/get-docker/) installed and running
@@ -41,4 +41,4 @@ This codebase uses unit tests extensively, please write and run tests.
 
 ## License
 
-[Apache 2.0](LICENSE)
+[Apache 2.0](LICENSE)**

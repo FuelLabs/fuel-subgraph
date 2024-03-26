@@ -19,6 +19,33 @@ type Transaction @entity {
   create: Create
   mint: Mint
 }
+
+type Input @entity {
+  id: ID!
+  coin_signed: Coin,
+  coin_predicate: Coin,
+}
+
+type UtxoId @entity {
+  id: ID!
+  tx_id: Bytes,
+  output_index: BigInt
+}
+
+type Coin @entity {
+  id: ID!
+  utxo_id: UtxoId,
+  owner: Bytes,
+  amount: BigInt,
+  asset_id: Bytes,
+  tx_pointer: TxPointer,
+  witness_index: BigInt,
+  maturity: BigInt,
+  predicate_gas_used: BigInt,
+  predicate: Bytes,
+  predicate_data: Bytes
+}
+
 type Script @entity {
   id: ID!
   script_gas_limit: BigInt,
@@ -26,14 +53,19 @@ type Script @entity {
   script_data: Bytes,
   receipts_root: Bytes
   policies: Policies
+  inputsList: [Input!],
+  witnessesList: [Bytes!],
+  ## ->>>>> custom
+  amount: BigInt
+  order_id: BigInt
 }
-#
-type Create @entity{
+
+type Create @entity {
   id: ID!
   bytecode_length: BigInt,
   bytecode_witness_index: BigInt,
   witnessesList: Bytes,
-  salt: Bytes
+  salt: Bytes,
   policies: Policies
 }
 #
@@ -41,7 +73,7 @@ type Mint @entity {
   id: ID!
   tx_pointer: TxPointer,
   output_contract: OutputContract,
-  mint_asset_id: Bytes
+  mint_asset_id: Bytes,
   mint_amount: BigInt,
   policies: Policies
 

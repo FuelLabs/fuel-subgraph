@@ -799,7 +799,6 @@ impl FirehoseMapperTrait<Chain> for FirehoseMapper {
         // Check about adding basic information about the block in the firehose::Response or maybe
         // define a slimmed down stuct that would decode only a few fields and ignore all the rest.
         let block = codec::Block::decode(any_block.value.as_ref())?;
-
         use firehose::ForkStep::*;
         match step {
             StepNew => {

@@ -5,7 +5,7 @@ indexers = ["default"]
 
 [store]
 [store.primary]
-connection="postgresql://salka1988:arst@localhost:5432/graph-node"
+connection = "postgresql://salka1988:let-me-in@postgres:5432/graph-node"
 pool_size = 10
 
 [chains]
@@ -15,5 +15,6 @@ ingestor = "block_ingestor_node"
 shard = "primary"
 protocol = "fuel"
 provider = [
-    { label = "fuel", details = { type = "firehose", url = "http://localhost:10015" }},
+  { label = "fuel", details = { type = "firehose", url = "http://firehose:10015" } },
 ]
+

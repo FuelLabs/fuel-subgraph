@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package example;
+
+message Contracts {
+  repeated Contract contracts = 1;
+}
+
+message Contract {
+    string address = 1;
+    uint64 blockNumber = 2;
+    string timestamp = 3;
+    uint64 ordinal = 4;
+}
+
+message Block {
+  bytes id = 1;
+  uint32 height = 2;
+  uint64 da_height = 3;
+  uint64 msg_receipt_count = 4;
+  bytes tx_root = 5;
+  bytes msg_receipt_root = 6;
+  bytes prev_id = 7;
+  bytes prev_root = 8;
+  fixed64 timestamp = 9;
+  bytes application_hash = 10;
+//  repeated Transaction transactions = 11;
+}

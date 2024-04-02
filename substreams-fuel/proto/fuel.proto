@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package sf.fuel.type.v1;
-
+//
 option go_package = "github.com/FuelLabs/firehose-fuel/pb/sf/fuel/type/v1;pbfuel";
 
 message Block {
@@ -51,11 +51,11 @@ message Create {
 }
 
 message Mint {
-  TxPointer tx_pointer = 1;
-  InputContract input_contract = 2;
-  OutputContract output_contract = 3;
-  uint64 mint_amount = 4;
-  bytes mint_asset_id = 5;
+    TxPointer tx_pointer = 1;
+    InputContract input_contract = 2;
+    OutputContract output_contract = 3;
+    uint64 mint_amount = 4;
+    bytes mint_asset_id = 5;
 }
 
 message Input {
@@ -287,3 +287,4 @@ message BurnReceipt {
   uint64 pc = 4;
   uint64 is = 5;
 }
+

@@ -23,8 +23,9 @@ start:
   args:
     - firehose
     - merger
-#    - reader-node
+    - reader-node
     - substreams-tier1
+    - substreams-tier2
     - relayer
   flags:
     reader-node-path: "./../../../firehose-extract/target/debug/firehose-extract"

@@ -1,0 +1,84 @@
+specVersion: v0.1.0
+package:
+  name: 'substreams_fuel' # the name to be used in the .spkg
+  version: v1.0.1 # the version to use when creating the .spkg
+
+#https://github:com/streamingfast/substreams/blob/develop/docs/reference-and-specs/manifests:md:
+
+#https://github:com/streamingfast/substreams/blob/develop/docs/developers-guide/modules/types:md:
+
+imports: # dependencies
+  entity: https://github.com/streamingfast/substreams-entity-change/releases/download/v0.2.1/substreams-entity-change-v0.2.1.spkg
+#  sql: https://github.com/streamingfast/substreams-sink-sql/releases/download/protodefs-v1.0.4/substreams-sink-sql-protodefs-v1.0.4.spkg
+#  database_change: https://github.com/streamingfast/substreams-sink-database-changes/releases/download/v1.2.1/substreams-database-change-v1.2.1.spkg
+
+
+protobuf: # specifies custom types for use by Substreams modules
+  files:
+    - fuel.proto
+    - example.proto
+  importPaths:
+    - ./proto
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ./target/wasm32-unknown-unknown/release/substreams.wasm
+
+modules: # specify modules with their inputs and outputs.
+  - name: map_blocks
+    kind: map
+    inputs:
+      - source: sf.fuel.type.v1.Block
+    output:
+      type: proto:sf.fuel.type.v1.Block
+
+  - name: map_transactions_from_blocks
+    kind: map
+    inputs:
+      - source: sf.fuel.type.v1.Block
+    output:
+      type: proto:example.Transactions
+
+
+  - name: decode_receipts_for_contract
+    kind: map
+    inputs:
+      - params: string
+      - map: map_transactions_from_blocks
+    output:
+      type: proto:example.Receipts
+
+# todo: check_this
+#  > substreams run -e localhost:10016 --plaintext substreams-fuel-v1.0.1.spkg decode_receipts_for_contract -s 3 -t 5 -p decode_receipts_for_contract=b81f1c4b9c408cb7d573cfcfe78878f671124322e17da233f047a4cc2372f9d7
+
+#  - name: graph_out
+#    kind: map
+#    inputs:
+#      - map: map_contract
+#    output:
+#      type: proto:substreams-fuel.entity.v1.EntityChanges # this type can be consumed by Graph Node
+
+#
+#  - name: db_out
+#    kind: map
+#    inputs:
+#      - map: map_block
+#    output:
+#      type: proto:sf.substreams-fuel.sink.database.v1.DatabaseChanges
+#
+#network: fuelnet
+#
+#sink:
+#  module: db_out
+#  type: sf.substreams-fuel.sink.sql.v1.Service
+#  config:
+#    schema: "./schema.sql"
+#    wire_protocol_access: true
+#    engine: postgres
+#    postgraphile_frontend:
+#      enabled: true
+#    pgweb_frontend:
+#      enabled: true
+#    rest_frontend:
+#      enabled: false

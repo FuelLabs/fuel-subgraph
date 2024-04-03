@@ -28,12 +28,15 @@ start:
     - firehose
     - merger
     - reader-node
+    - substreams-tier1
+    - substreams-tier2
     - relayer
   flags:
     reader-node-path: "$FIREHOSE_EXTRACT_BIN"
     reader-node-arguments: $CHAIN_ID $LAST_HEIGHT
     common-live-blocks-addr: ""
     merger-prune-forked-blocks-after: 50
+    common-first-streamable-block: 1
 #    reader-node-start-block-num:
 #    reader-node-stop-block-num: 500
 #    merger-time-between-store-pruning: 1s

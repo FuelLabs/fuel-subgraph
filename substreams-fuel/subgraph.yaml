@@ -1,0 +1,14 @@
+specVersion: 0.0.4
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: substreams
+    name: substreams-fuel
+    network: test
+    source:
+      package:
+        moduleName: graph_out
+        file: substreams-fuel-v1.0.1.spkg
+    mapping:
+      kind: substreams/graph-entities
+      apiVersion: 0.0.6

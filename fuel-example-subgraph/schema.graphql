@@ -14,10 +14,47 @@ type Block @entity {
 
 type Transaction @entity {
   id: String!
+  receipts: [Receipt!],
   kindCase: String
   script: Script
   create: Create
   mint: Mint
+}
+
+type Receipt @entity {
+  id: String!
+  kindCase: String,
+  log: LogReceipt,
+  log_data: LogDataReceipt
+  script_result: ScriptResultReceipt
+}
+
+type ScriptResultReceipt @entity {
+    id: String!
+    result: BigInt,
+    gas_used: BigInt
+}
+
+type LogDataReceipt @entity {
+    id: Bytes!,
+    ra: BigInt,
+    rb: BigInt,
+    ptr: BigInt,
+    len: BigInt,
+    digest: Bytes,
+    pc: BigInt,
+    is: BigInt,
+    data: Bytes,
+}
+
+type LogReceipt @entity {
+    id: Bytes!,
+    ra: BigInt,
+    rb: BigInt,
+    rc: BigInt,
+    rd: BigInt,
+    pc: BigInt,
+    is: BigInt,
 }
 
 type Input @entity {

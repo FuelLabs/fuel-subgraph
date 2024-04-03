@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package example;
+
+import "fuel.proto";
+
+message Receipts {
+  string transaction_id = 1;
+  repeated sf.fuel.type.v1.Receipt receipts = 2;
+}
+
+message Transactions {
+  string block_id = 1;
+  repeated sf.fuel.type.v1.Transaction transaction = 2;
+}

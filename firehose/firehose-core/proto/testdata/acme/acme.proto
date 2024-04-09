@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package sf.acme.type.v1;
+
+message Block {
+  string hash = 1;
+  uint64 num = 2;
+}

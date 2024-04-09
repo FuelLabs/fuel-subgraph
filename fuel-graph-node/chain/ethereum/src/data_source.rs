@@ -2,6 +2,7 @@ use anyhow::{anyhow, Error};
 use anyhow::{ensure, Context};
 use graph::blockchain::TriggerWithHandler;
 use graph::components::store::StoredDynamicDataSource;
+use graph::components::subgraph::InstanceDSTemplateInfo;
 use graph::data_source::CausalityRegion;
 use graph::prelude::ethabi::ethereum_types::H160;
 use graph::prelude::ethabi::StateMutability;
@@ -22,8 +23,8 @@ use graph::{
         ethabi::{Address, Contract, Event, Function, LogParam, ParamType, RawLog},
         serde_json, warn,
         web3::types::{Log, Transaction, H256},
-        BlockNumber, CheapClone, DataSourceTemplateInfo, Deserialize, EthereumCall,
-        LightEthereumBlock, LightEthereumBlockExt, LinkResolver, Logger, TryStreamExt,
+        BlockNumber, CheapClone, Deserialize, EthereumCall, LightEthereumBlock,
+        LightEthereumBlockExt, LinkResolver, Logger, TryStreamExt,
     },
 };
 
@@ -59,14 +60,20 @@ pub struct DataSource {
 }
 
 impl blockchain::DataSource<Chain> for DataSource {
-    fn from_template_info(info: DataSourceTemplateInfo<Chain>) -> Result<Self, Error> {
-        let DataSourceTemplateInfo {
-            template,
+    fn from_template_info(
+        info: InstanceDSTemplateInfo,
+        ds_template: &graph::data_source::DataSourceTemplate<Chain>,
+    ) -> Result<Self, Error> {
+        // Note: There clearly is duplication between the data in `ds_template and the `template`
+        // field here. Both represent a template definition, would be good to unify them.
+        let InstanceDSTemplateInfo {
+            template: _,
             params,
             context,
             creation_block,
         } = info;
-        let template = template.into_onchain().ok_or(anyhow!(
+
+        let template = ds_template.as_onchain().ok_or(anyhow!(
             "Cannot create onchain data source from offchain template"
         ))?;
 
@@ -94,14 +101,14 @@ impl blockchain::DataSource<Chain> for DataSource {
             .with_context(|| format!("template `{}`", template.name))?;
 
         Ok(DataSource {
-            kind: template.kind,
-            network: template.network,
-            name: template.name,
+            kind: template.kind.clone(),
+            network: template.network.clone(),
+            name: template.name.clone(),
             manifest_idx: template.manifest_idx,
             address: Some(address),
             start_block: creation_block,
             end_block: None,
-            mapping: template.mapping,
+            mapping: template.mapping.clone(),
             context: Arc::new(context),
             creation_block: Some(creation_block),
             contract_abi,
@@ -397,23 +404,18 @@ impl DataSource {
         })
     }
 
-    fn handlers_for_log(&self, log: &Log) -> Vec<MappingEventHandler> {
-        // Get signature from the log
-        let topic0 = match log.topics.get(0) {
-            Some(topic0) => topic0,
-            // Events without a topic should just be be ignored
-            None => return vec![],
-        };
-
-        self.mapping
-            .event_handlers
-            .iter()
-            .filter(|handler| *topic0 == handler.topic0())
-            .cloned()
-            .collect::<Vec<_>>()
+    fn handlers_for_log<'a>(
+        &'a self,
+        log: &'a Log,
+    ) -> impl Iterator<Item = &'a MappingEventHandler> {
+        self.mapping.event_handlers.iter().filter(|handler| {
+            // Events without a topic should just be ignored. Making the RHS
+            // always `Some` ensures that
+            log.topics.first() == Some(&handler.topic0())
+        })
     }
 
-    fn handler_for_call(&self, call: &EthereumCall) -> Result<Option<MappingCallHandler>, Error> {
+    fn handler_for_call(&self, call: &EthereumCall) -> Result<Option<&MappingCallHandler>, Error> {
         // First four bytes of the input for the call are the first four
         // bytes of hash of the function signature
         ensure!(
@@ -423,55 +425,49 @@ impl DataSource {
 
         let target_method_id = &call.input.0[..4];
 
-        Ok(self
-            .mapping
-            .call_handlers
-            .iter()
-            .find(move |handler| {
-                let fhash = keccak256(handler.function.as_bytes());
-                let actual_method_id = [fhash[0], fhash[1], fhash[2], fhash[3]];
-                target_method_id == actual_method_id
-            })
-            .cloned())
+        Ok(self.mapping.call_handlers.iter().find(move |handler| {
+            let fhash = keccak256(handler.function.as_bytes());
+            let actual_method_id = [fhash[0], fhash[1], fhash[2], fhash[3]];
+            target_method_id == actual_method_id
+        }))
     }
 
     fn handler_for_block(
         &self,
         trigger_type: &EthereumBlockTriggerType,
         block: BlockNumber,
-    ) -> Option<MappingBlockHandler> {
+    ) -> Option<&MappingBlockHandler> {
         match trigger_type {
             // Start matches only initialization handlers with a `once` filter
-            EthereumBlockTriggerType::Start => self
-                .mapping
-                .block_handlers
-                .iter()
-                .find(move |handler| match handler.filter {
-                    Some(BlockHandlerFilter::Once) => block == self.start_block,
-                    _ => false,
-                })
-                .cloned(),
+            EthereumBlockTriggerType::Start => {
+                self.mapping
+                    .block_handlers
+                    .iter()
+                    .find(move |handler| match handler.filter {
+                        Some(BlockHandlerFilter::Once) => block == self.start_block,
+                        _ => false,
+                    })
+            }
             // End matches all handlers without a filter or with a `polling` filter
-            EthereumBlockTriggerType::End => self
-                .mapping
-                .block_handlers
-                .iter()
-                .find(move |handler| match handler.filter {
-                    Some(BlockHandlerFilter::Polling { every }) => {
-                        let start_block = self.start_block;
-                        let should_trigger = (block - start_block) % every.get() as i32 == 0;
-                        should_trigger
-                    }
-                    None => true,
-                    _ => false,
-                })
-                .cloned(),
+            EthereumBlockTriggerType::End => {
+                self.mapping
+                    .block_handlers
+                    .iter()
+                    .find(move |handler| match handler.filter {
+                        Some(BlockHandlerFilter::Polling { every }) => {
+                            let start_block = self.start_block;
+                            let should_trigger = (block - start_block) % every.get() as i32 == 0;
+                            should_trigger
+                        }
+                        None => true,
+                        _ => false,
+                    })
+            }
             EthereumBlockTriggerType::WithCallTo(_address) => self
                 .mapping
                 .block_handlers
                 .iter()
-                .find(move |handler| handler.filter == Some(BlockHandlerFilter::Call))
-                .cloned(),
+                .find(move |handler| handler.filter == Some(BlockHandlerFilter::Call)),
         }
     }
 
@@ -642,8 +638,9 @@ impl DataSource {
                     MappingTrigger::Block {
                         block: block.cheap_clone(),
                     },
-                    handler.handler,
+                    handler.handler.clone(),
                     block.block_ptr(),
+                    block.timestamp(),
                 )))
             }
             EthereumTrigger::Log(log_ref) => {
@@ -743,16 +740,18 @@ impl DataSource {
                     "address" => format!("{}", &log.address),
                     "transaction" => format!("{}", &transaction.hash),
                 });
+                let handler = event_handler.handler.clone();
                 Ok(Some(TriggerWithHandler::<Chain>::new_with_logging_extras(
                     MappingTrigger::Log {
                         block: block.cheap_clone(),
                         transaction: Arc::new(transaction),
-                        log: log,
+                        log,
                         params,
                         receipt: receipt.map(|r| r.cheap_clone()),
                     },
-                    event_handler.handler,
+                    handler,
                     block.block_ptr(),
+                    block.timestamp(),
                     logging_extras,
                 )))
             }
@@ -861,8 +860,9 @@ impl DataSource {
                         inputs,
                         outputs,
                     },
-                    handler.handler,
+                    handler.handler.clone(),
                     block.block_ptr(),
+                    block.timestamp(),
                     logging_extras,
                 )))
             }

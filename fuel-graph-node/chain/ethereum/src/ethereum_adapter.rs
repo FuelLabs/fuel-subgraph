@@ -10,6 +10,7 @@ use graph::data::subgraph::API_VERSION_0_0_7;
 use graph::prelude::ethabi::ParamType;
 use graph::prelude::ethabi::Token;
 use graph::prelude::tokio::try_join;
+use graph::prelude::web3::types::U256;
 use graph::slog::o;
 use graph::{
     blockchain::{block_stream::BlockWithTriggers, BlockPtr, IngestorError},
@@ -43,6 +44,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Instant;
 
+use crate::adapter::EthereumGetBalanceError;
 use crate::adapter::ProviderStatus;
 use crate::chain::BlockFinality;
 use crate::trigger::LogRef;
@@ -326,11 +328,11 @@ impl EthereumAdapter {
         filter: EthGetLogsFilter,
     ) -> DynTryFuture<'static, Vec<Log>, Error> {
         // Codes returned by Ethereum node providers if an eth_getLogs request is too heavy.
-        // The first one is for Infura when it hits the log limit, the rest for Alchemy timeouts.
         const TOO_MANY_LOGS_FINGERPRINTS: &[&str] = &[
-            "ServerError(-32005)",
-            "503 Service Unavailable",
-            "ServerError(-32000)",
+            "ServerError(-32005)",       // Infura
+            "503 Service Unavailable",   // Alchemy
+            "ServerError(-32000)",       // Alchemy
+            "Try with this block range", // zKSync era
         ];
 
         if from > to {
@@ -408,6 +410,47 @@ impl EthereumAdapter {
         })
         .try_concat()
         .boxed()
+    }
+
+    fn balance(
+        &self,
+        logger: &Logger,
+        address: Address,
+        block_ptr: BlockPtr,
+    ) -> impl Future<Item = U256, Error = EthereumGetBalanceError> + Send {
+        let web3 = self.web3.clone();
+        let logger = Logger::new(&logger, o!("provider" => self.provider.clone()));
+
+        // Ganache does not support calls by block hash.
+        // See https://github.com/trufflesuite/ganache-cli/issues/973
+        let block_id = if !self.supports_eip_1898 {
+            BlockId::Number(block_ptr.number.into())
+        } else {
+            BlockId::Hash(block_ptr.hash_as_h256())
+        };
+        let retry_log_message = format!("eth_getBalance RPC call for block {}", block_ptr);
+
+        retry(retry_log_message, &logger)
+            .when(|result| match result {
+                Ok(_) => false,
+                Err(_) => true,
+            })
+            .limit(ENV_VARS.request_retries)
+            .timeout_secs(ENV_VARS.json_rpc_timeout.as_secs())
+            .run(move || {
+                let web3 = web3.cheap_clone();
+                async move {
+                    let result: Result<U256, web3::Error> =
+                        web3.eth().balance(address, Some(block_id)).boxed().await;
+                    match result {
+                        Ok(balance) => Ok(balance),
+                        Err(err) => Err(EthereumGetBalanceError::Web3Error(err)),
+                    }
+                }
+            })
+            .map_err(|e| e.into_inner().unwrap_or(EthereumGetBalanceError::Timeout))
+            .boxed()
+            .compat()
     }
 
     fn call(
@@ -1247,6 +1290,20 @@ impl EthereumAdapterTrait for EthereumAdapter {
         )
     }
 
+    fn get_balance(
+        &self,
+        logger: &Logger,
+        address: H160,
+        block_ptr: BlockPtr,
+    ) -> Box<dyn Future<Item = U256, Error = EthereumGetBalanceError> + Send> {
+        debug!(
+            logger, "eth_getBalance";
+            "address" => format!("{}", address),
+            "block" => format!("{}", block_ptr)
+        );
+        Box::new(self.balance(logger, address, block_ptr))
+    }
+
     fn contract_call(
         &self,
         logger: &Logger,
@@ -1274,6 +1331,7 @@ impl EthereumAdapterTrait for EthereumAdapter {
         };
 
         debug!(logger, "eth_call";
+            "fn" => &call.function.name,
             "address" => hex::encode(call.address),
             "data" => hex::encode(&call_data),
             "block_hash" => call.block_ptr.hash_hex(),
@@ -1306,14 +1364,21 @@ impl EthereumAdapterTrait for EthereumAdapter {
                         .map(move |result| {
                             // Don't block handler execution on writing to the cache.
                             let for_cache = result.0.clone();
-                            let _ = graph::spawn_blocking_allow_panic(move || {
-                                cache
-                                    .set_call(call.address, &call_data, call.block_ptr, &for_cache)
-                                    .map_err(|e| {
-                                        error!(logger, "call cache set error";
-                                                   "error" => e.to_string())
-                                    })
-                            });
+                            if !result.0.is_empty() {
+                                let _ = graph::spawn_blocking_allow_panic(move || {
+                                    cache
+                                        .set_call(
+                                            call.address,
+                                            &call_data,
+                                            call.block_ptr,
+                                            &for_cache,
+                                        )
+                                        .map_err(|e| {
+                                            error!(logger, "call cache set error";
+                                                       "error" => e.to_string())
+                                        })
+                                });
+                            }
                             result.0
                         }),
                     )
@@ -1338,7 +1403,7 @@ impl EthereumAdapterTrait for EthereumAdapter {
     }
 
     /// Load Ethereum blocks in bulk, returning results as they come back as a Stream.
-    fn load_blocks(
+    async fn load_blocks(
         &self,
         logger: Logger,
         chain_store: Arc<dyn ChainStore>,
@@ -1347,7 +1412,9 @@ impl EthereumAdapterTrait for EthereumAdapter {
         let block_hashes: Vec<_> = block_hashes.iter().cloned().collect();
         // Search for the block in the store first then use json-rpc as a backup.
         let mut blocks: Vec<Arc<LightEthereumBlock>> = chain_store
-            .blocks(&block_hashes.iter().map(|&b| b.into()).collect::<Vec<_>>())
+            .cheap_clone()
+            .blocks(block_hashes.iter().map(|&b| b.into()).collect::<Vec<_>>())
+            .await
             .map_err(|e| error!(&logger, "Error accessing block cache {}", e))
             .unwrap_or_default()
             .into_iter()
@@ -1529,6 +1596,7 @@ pub(crate) async fn blocks_with_triggers(
 
     let blocks = eth
         .load_blocks(logger.cheap_clone(), chain_store.clone(), block_hashes)
+        .await
         .and_then(
             move |block| match triggers_by_block.remove(&(block.number() as BlockNumber)) {
                 Some(triggers) => Ok(BlockWithTriggers::new(

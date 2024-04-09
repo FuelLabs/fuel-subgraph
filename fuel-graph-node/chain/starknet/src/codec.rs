@@ -1,4 +1,4 @@
-  #[rustfmt::skip]
+#[rustfmt::skip]
 #[path = "protobuf/zklend.starknet.r#type.v1.rs"]
 mod pbcodec;
 
@@ -27,5 +27,9 @@ impl BlockchainBlock for Block {
                 number: (self.height - 1) as i32,
             })
         }
+    }
+
+    fn timestamp(&self) -> graph::blockchain::BlockTime {
+        graph::blockchain::BlockTime::since_epoch(self.timestamp as i64, 0)
     }
 }

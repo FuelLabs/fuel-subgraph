@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail, Result};
 use anyhow::{Context, Error};
 use graph::blockchain::client::ChainClient;
 use graph::blockchain::firehose_block_ingestor::{FirehoseBlockIngestor, Transforms};
-use graph::blockchain::{BlockIngestor, BlockchainKind, TriggersAdapterSelector};
+use graph::blockchain::{BlockIngestor, BlockTime, BlockchainKind, TriggersAdapterSelector};
 use graph::components::store::DeploymentCursorTracker;
 use graph::data::subgraph::UnifiedMappingApiVersion;
 use graph::firehose::{FirehoseEndpoint, ForkStep};
@@ -55,7 +55,7 @@ use crate::{
     SubgraphEthRpcMetrics, TriggerFilter, ENV_VARS,
 };
 use graph::blockchain::block_stream::{
-    BlockStream, BlockStreamBuilder, BlockStreamMapper, FirehoseCursor,
+    BlockStream, BlockStreamBuilder, BlockStreamError, BlockStreamMapper, FirehoseCursor,
 };
 
 /// Celo Mainnet: 42220, Testnet Alfajores: 44787, Testnet Baklava: 62320
@@ -588,6 +588,15 @@ impl Block for BlockFinality {
             BlockFinality::NonFinal(block) => json::to_value(&block.ethereum_block),
         }
     }
+
+    fn timestamp(&self) -> BlockTime {
+        let ts = match self {
+            BlockFinality::Final(block) => block.timestamp,
+            BlockFinality::NonFinal(block) => block.ethereum_block.block.timestamp,
+        };
+        let ts = i64::try_from(ts.as_u64()).unwrap();
+        BlockTime::since_epoch(ts, 0)
+    }
 }
 
 pub struct DummyDataSourceTemplate;
@@ -715,6 +724,7 @@ impl TriggersAdapterTrait<Chain> for TriggersAdapter {
                         self.chain_store.cheap_clone(),
                         HashSet::from_iter(Some(block.hash_as_h256())),
                     )
+                    .await
                     .collect()
                     .compat()
                     .await?;
@@ -735,10 +745,15 @@ pub struct FirehoseMapper {
 
 #[async_trait]
 impl BlockStreamMapper<Chain> for FirehoseMapper {
-    fn decode_block(&self, output: Option<&[u8]>) -> Result<Option<BlockFinality>, Error> {
+    fn decode_block(
+        &self,
+        output: Option<&[u8]>,
+    ) -> Result<Option<BlockFinality>, BlockStreamError> {
         let block = match output {
             Some(block) => codec::Block::decode(block)?,
-            None => anyhow::bail!("ethereum mapper is expected to always have a block"),
+            None => Err(anyhow::anyhow!(
+                "ethereum mapper is expected to always have a block"
+            ))?,
         };
 
         // See comment(437a9f17-67cc-478f-80a3-804fe554b227) ethereum_block.calls is always Some even if calls
@@ -752,10 +767,11 @@ impl BlockStreamMapper<Chain> for FirehoseMapper {
         &self,
         logger: &Logger,
         block: BlockFinality,
-    ) -> Result<BlockWithTriggers<Chain>, Error> {
+    ) -> Result<BlockWithTriggers<Chain>, BlockStreamError> {
         self.adapter
             .triggers_in_block(logger, block, &self.filter)
             .await
+            .map_err(BlockStreamError::from)
     }
 
     async fn handle_substreams_block(
@@ -764,7 +780,7 @@ impl BlockStreamMapper<Chain> for FirehoseMapper {
         _clock: Clock,
         _cursor: FirehoseCursor,
         _block: Vec<u8>,
-    ) -> Result<BlockStreamEvent<Chain>, Error> {
+    ) -> Result<BlockStreamEvent<Chain>, BlockStreamError> {
         unimplemented!()
     }
 }
@@ -799,6 +815,7 @@ impl FirehoseMapperTrait<Chain> for FirehoseMapper {
         // Check about adding basic information about the block in the firehose::Response or maybe
         // define a slimmed down stuct that would decode only a few fields and ignore all the rest.
         let block = codec::Block::decode(any_block.value.as_ref())?;
+
         use firehose::ForkStep::*;
         match step {
             StepNew => {

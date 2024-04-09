@@ -2,7 +2,6 @@ use std::{cmp::PartialOrd, fmt, str::FromStr};
 
 use anyhow::Error;
 use graph::impl_slog_value;
-// use crate::data_source::DataSource;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd)]
 pub struct NodeCapabilities {}
@@ -23,8 +22,3 @@ impl fmt::Display for NodeCapabilities {
 
 impl_slog_value!(NodeCapabilities, "{}");
 
-// impl graph::blockchain::NodeCapabilities<crate::Chain> for NodeCapabilities {
-//     fn from_data_sources(_data_sources: &[DataSource]) -> Self {
-//         NodeCapabilities {}
-//     }
-// }

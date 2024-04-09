@@ -208,7 +208,6 @@ impl Config {
     }
 
     pub fn query_only(&self, node: &NodeId) -> bool {
-
         self.general
             .as_ref()
             .map(|g| match g.query.find(node.as_str()) {
@@ -616,6 +615,7 @@ fn twenty() -> u16 {
 pub struct FirehoseProvider {
     pub url: String,
     pub token: Option<String>,
+    pub key: Option<String>,
     #[serde(default = "twenty")]
     pub conn_pool_size: u16,
     #[serde(default)]
@@ -735,6 +735,9 @@ impl Provider {
 
                 if let Some(token) = &firehose.token {
                     firehose.token = Some(shellexpand::env(token)?.into_owned());
+                }
+                if let Some(key) = &firehose.key {
+                    firehose.key = Some(shellexpand::env(key)?.into_owned());
                 }
 
                 if firehose
@@ -1488,6 +1491,7 @@ mod tests {
                 details: ProviderDetails::Firehose(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![],
@@ -1513,6 +1517,7 @@ mod tests {
                 details: ProviderDetails::Substreams(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![],
@@ -1521,6 +1526,33 @@ mod tests {
             actual
         );
     }
+
+    #[test]
+    fn it_works_on_substreams_provider_from_toml_with_api_key() {
+        let actual = toml::from_str(
+            r#"
+                label = "authed"
+                details = { type = "substreams", url = "http://localhost:9000", key = "KEY", features = [] }
+            "#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            Provider {
+                label: "authed".to_owned(),
+                details: ProviderDetails::Substreams(FirehoseProvider {
+                    url: "http://localhost:9000".to_owned(),
+                    token: None,
+                    key: Some("KEY".to_owned()),
+                    features: BTreeSet::new(),
+                    conn_pool_size: 20,
+                    rules: vec![],
+                }),
+            },
+            actual
+        );
+    }
+
     #[test]
     fn it_works_on_new_firehose_provider_from_toml_no_features() {
         let mut actual = toml::from_str(
@@ -1537,6 +1569,7 @@ mod tests {
                 details: ProviderDetails::Firehose(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![],
@@ -1566,6 +1599,7 @@ mod tests {
                 details: ProviderDetails::Firehose(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![
@@ -1604,6 +1638,7 @@ mod tests {
                 details: ProviderDetails::Substreams(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![
@@ -1642,6 +1677,7 @@ mod tests {
                 details: ProviderDetails::Substreams(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![
@@ -1680,6 +1716,7 @@ mod tests {
                 details: ProviderDetails::Substreams(FirehoseProvider {
                     url: "http://localhost:9000".to_owned(),
                     token: None,
+                    key: None,
                     features: BTreeSet::new(),
                     conn_pool_size: 20,
                     rules: vec![

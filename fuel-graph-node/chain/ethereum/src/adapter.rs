@@ -5,6 +5,8 @@ use graph::blockchain::ChainIdentifier;
 use graph::firehose::CallToFilter;
 use graph::firehose::CombinedFilter;
 use graph::firehose::LogFilter;
+use graph::prelude::web3::types::H160;
+use graph::prelude::web3::types::U256;
 use itertools::Itertools;
 use prost::Message;
 use prost_types::Any;
@@ -40,6 +42,14 @@ pub struct EthereumContractCall {
     pub function: Function,
     pub args: Vec<Token>,
     pub gas: Option<u32>,
+}
+
+#[derive(Error, Debug)]
+pub enum EthereumGetBalanceError {
+    #[error("call error: {0}")]
+    Web3Error(web3::Error),
+    #[error("ethereum node took too long to perform call")]
+    Timeout,
 }
 
 #[derive(Error, Debug)]
@@ -905,7 +915,7 @@ pub trait EthereumAdapter: Send + Sync + 'static {
 
     /// Load Ethereum blocks in bulk, returning results as they come back as a Stream.
     /// May use the `chain_store` as a cache.
-    fn load_blocks(
+    async fn load_blocks(
         &self,
         logger: Logger,
         chain_store: Arc<dyn ChainStore>,
@@ -961,6 +971,13 @@ pub trait EthereumAdapter: Send + Sync + 'static {
         call: EthereumContractCall,
         cache: Arc<dyn EthereumCallCache>,
     ) -> Box<dyn Future<Item = Vec<Token>, Error = EthereumContractCallError> + Send>;
+
+    fn get_balance(
+        &self,
+        logger: &Logger,
+        address: H160,
+        block_ptr: BlockPtr,
+    ) -> Box<dyn Future<Item = U256, Error = EthereumGetBalanceError> + Send>;
 }
 
 #[cfg(test)]

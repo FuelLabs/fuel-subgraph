@@ -6,6 +6,7 @@ use graph::{
 };
 
 use std::convert::TryFrom;
+use graph::blockchain::BlockTime;
 
 impl Block {
     pub fn parent_ptr(&self) -> Option<BlockPtr> {
@@ -17,7 +18,15 @@ impl Block {
             }),
         }
     }
+    fn block_time(&self) -> BlockTime {
+        let ts = i64::try_from(self.timestamp).unwrap();
+        let secs = ts / 1_000_000_000;
+        let ns: u32 = (ts % 1_000_000_000) as u32;
+        BlockTime::since_epoch(secs, ns)
+    }
 }
+
+
 
 impl<'a> From<&'a Block> for BlockPtr {
     fn from(b: &'a Block) -> BlockPtr {
@@ -36,5 +45,9 @@ impl BlockchainBlock for Block {
 
     fn number(&self) -> i32 {
         BlockNumber::try_from(self.height).unwrap()
+    }
+
+    fn timestamp(&self) -> BlockTime {
+        self.block_time()
     }
 }

@@ -4,12 +4,13 @@ use graph::{
     components::store::StoredDynamicDataSource,
     data::subgraph::DataSourceContext,
     prelude::{
-        async_trait, BlockNumber, CheapClone, DataSourceTemplateInfo, Deserialize, Link,
+        async_trait, BlockNumber, CheapClone, Deserialize, Link,
         LinkResolver, Logger,
     },
     semver,
 };
 use std::{collections::HashSet, sync::Arc};
+use graph::prelude::InstanceDSTemplateInfo;
 
 use crate::chain::Chain;
 
@@ -22,7 +23,7 @@ pub struct DataSource {
     pub kind: String,
     pub network: Option<String>,
     pub name: String,
-    pub(crate) source: Source,
+    pub source: Source,
     pub mapping: Mapping,
     pub context: Arc<Option<DataSourceContext>>,
     pub creation_block: Option<BlockNumber>,
@@ -128,8 +129,8 @@ impl blockchain::UnresolvedDataSource<Chain> for UnresolvedDataSource {
 
         let mapping = mapping.resolve(resolver, logger).await.with_context(|| {
             format!(
-                "failed to resolve data source {} with source_account {:?} and source_start_block {}",
-                name, source.owner, source.start_block
+                "failed to resolve data source {} with source_start_block {}",
+                name, source.start_block
             )
         })?;
 
@@ -201,12 +202,12 @@ impl blockchain::DataSourceTemplate<Chain> for DataSourceTemplate {
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct Source {
+pub struct Source {
     // A data source that does not have an owner can only have block handlers.
-    pub(crate) owner: Option<String>,
+    // pub(crate) owner: Option<String>,
     #[serde(default)]
-    pub(crate) start_block: BlockNumber,
-    pub(crate) end_block: Option<BlockNumber>,
+    pub start_block: BlockNumber,
+    pub end_block: Option<BlockNumber>,
 }
 
 #[derive(Clone, Debug)]
@@ -230,7 +231,10 @@ pub struct TransactionHandler {
 }
 
 impl blockchain::DataSource<Chain> for DataSource {
-    fn from_template_info(_info: DataSourceTemplateInfo<Chain>) -> Result<Self, Error> {
+    fn from_template_info(
+        _info: InstanceDSTemplateInfo,
+        _template: &graph::data_source::DataSourceTemplate<Chain>,
+    ) -> Result<Self, Error> {
         Err(anyhow!("Fuel subgraphs do not support templates"))
     }
 
@@ -238,11 +242,11 @@ impl blockchain::DataSource<Chain> for DataSource {
         _template: &DataSourceTemplate,
         _stored: StoredDynamicDataSource,
     ) -> Result<Self, Error> {
-        todo!()
+        Err(anyhow!("Fuel subgraphs do not support dynamic data sources"))
     }
 
     fn address(&self) -> Option<&[u8]> {
-        self.source.owner.as_ref().map(String::as_bytes)
+        None
     }
 
     fn start_block(&self) -> BlockNumber {
@@ -311,6 +315,7 @@ impl blockchain::DataSource<Chain> for DataSource {
             trigger.cheap_clone(),
             handler.clone(),
             block.ptr(),
+            block.timestamp(),
         )))
     }
 

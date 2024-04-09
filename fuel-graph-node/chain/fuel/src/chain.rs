@@ -41,6 +41,7 @@ use graph::{
     data::subgraph::UnifiedMappingApiVersion,
     firehose::FirehoseEndpoint,
 };
+use graph::blockchain::block_stream::BlockStreamError;
 
 pub struct Chain {
     logger_factory: LoggerFactory,
@@ -60,10 +61,15 @@ pub struct FirehoseMapper {
 
 #[async_trait]
 impl BlockStreamMapper<Chain> for FirehoseMapper {
-    fn decode_block(&self, output: Option<&[u8]>) -> Result<Option<codec::Block>, Error> {
+    fn decode_block(&self, output: Option<&[u8]>) -> Result<Option<codec::Block>, BlockStreamError> {
         let block = match output {
             Some(block) => codec::Block::decode(block)?,
-            None => anyhow::bail!("fuel mapper is expected to always have a block"),
+            None => {
+                return Err(anyhow::anyhow!(
+                    "fuel mapper is expected to always have a block"
+                ))
+                    .map_err(BlockStreamError::from)
+            }
         };
 
         Ok(Some(block))
@@ -73,10 +79,11 @@ impl BlockStreamMapper<Chain> for FirehoseMapper {
         &self,
         logger: &Logger,
         block: codec::Block,
-    ) -> Result<BlockWithTriggers<Chain>, Error> {
+    ) -> Result<BlockWithTriggers<Chain>, BlockStreamError> {
         self.adapter
             .triggers_in_block(logger, block, self.filter.as_ref())
             .await
+            .map_err(BlockStreamError::from)
     }
 
     async fn handle_substreams_block(
@@ -85,8 +92,8 @@ impl BlockStreamMapper<Chain> for FirehoseMapper {
         _clock: Clock,
         _cursor: FirehoseCursor,
         _message: Vec<u8>,
-    ) -> Result<BlockStreamEvent<Chain>, Error> {
-        todo!()
+    ) -> Result<BlockStreamEvent<Chain>, BlockStreamError> {
+        unimplemented!()
     }
 }
 
@@ -227,9 +234,7 @@ impl BlockStreamBuilder<Chain> for FuelStreamBuilder {
         _block_cursor: FirehoseCursor,
         _subgraph_current_block: Option<BlockPtr>,
         _filter: Arc<<Chain as Blockchain>::TriggerFilter>,
-    ) -> Result<Box<dyn BlockStream<Chain>>> {
-        unimplemented!()
-    }
+    ) -> Result<Box<dyn BlockStream<Chain>>> { unimplemented!() }
 
     async fn build_polling(
         &self,

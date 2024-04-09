@@ -8,6 +8,7 @@ dataSources:
     name: hello-world
     network: near-mainnet
     source:
+      startBlock: 1
       package:
         moduleName: graph_out
         file: substreams-near-hello-world-v0.1.0.spkg

@@ -479,6 +479,26 @@ where
 
         Ok(())
     }
+
+    async fn pause_subgraph(&self, hash: &DeploymentHash) -> Result<(), SubgraphRegistrarError> {
+        let locator = self.store.active_locator(hash)?;
+        let deployment =
+            locator.ok_or_else(|| SubgraphRegistrarError::DeploymentNotFound(hash.to_string()))?;
+
+        self.store.pause_subgraph(&deployment)?;
+
+        Ok(())
+    }
+
+    async fn resume_subgraph(&self, hash: &DeploymentHash) -> Result<(), SubgraphRegistrarError> {
+        let locator = self.store.active_locator(hash)?;
+        let deployment =
+            locator.ok_or_else(|| SubgraphRegistrarError::DeploymentNotFound(hash.to_string()))?;
+
+        self.store.resume_subgraph(&deployment)?;
+
+        Ok(())
+    }
 }
 
 async fn handle_assignment_event(
@@ -604,7 +624,7 @@ async fn create_subgraph_version<C: Blockchain, S: SubgraphStore>(
     debug_fork: Option<DeploymentHash>,
     version_switching_mode: SubgraphVersionSwitchingMode,
     resolver: &Arc<dyn LinkResolver>,
-    history_blocks: Option<i32>,
+    history_blocks_override: Option<i32>,
 ) -> Result<DeploymentLocator, SubgraphRegistrarError> {
     let raw_string = serde_yaml::to_string(&raw).unwrap();
     let unvalidated = UnvalidatedSubgraphManifest::<C>::resolve(
@@ -630,8 +650,6 @@ async fn create_subgraph_version<C: Blockchain, S: SubgraphStore>(
         .validate(store.cheap_clone(), should_validate)
         .await
         .map_err(SubgraphRegistrarError::ManifestValidationError)?;
-
-    let history_blocks = history_blocks.or(manifest.history_blocks());
 
     let network_name = manifest.network_name();
 
@@ -705,8 +723,9 @@ async fn create_subgraph_version<C: Blockchain, S: SubgraphStore>(
         .graft(base_block)
         .debug(debug_fork)
         .entities_with_causality_region(needs_causality_region);
-    if let Some(history_blocks) = history_blocks {
-        deployment = deployment.with_history_blocks(history_blocks);
+
+    if let Some(history_blocks) = history_blocks_override {
+        deployment = deployment.with_history_blocks_override(history_blocks);
     }
 
     deployment_store

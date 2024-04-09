@@ -1,15 +1,19 @@
 use std::{sync::Arc, time::Instant};
 
+use crate::adapter::EthereumGetBalanceError;
 use crate::data_source::MappingABI;
 use crate::{
     capabilities::NodeCapabilities, network::EthereumNetworkAdapters, Chain, DataSource,
     EthereumAdapter, EthereumAdapterTrait, EthereumContractCall, EthereumContractCallError,
     ENV_VARS,
 };
-use anyhow::{Context, Error};
+use anyhow::{anyhow, Context, Error};
 use blockchain::HostFn;
 use graph::blockchain::ChainIdentifier;
 use graph::components::subgraph::HostMetrics;
+use graph::data::store::scalar::BigInt;
+use graph::data::subgraph::API_VERSION_0_0_9;
+use graph::prelude::web3::types::H160;
 use graph::runtime::gas::Gas;
 use graph::runtime::{AscIndexId, IndexForAscTypeId};
 use graph::{
@@ -23,7 +27,7 @@ use graph::{
     semver::Version,
     slog::{info, trace, Logger},
 };
-use graph_runtime_wasm::asc_abi::class::{AscEnumArray, EthereumValueKind};
+use graph_runtime_wasm::asc_abi::class::{AscBigInt, AscEnumArray, EthereumValueKind};
 
 use super::abi::{AscUnresolvedContractCall, AscUnresolvedContractCall_0_0_4};
 
@@ -46,6 +50,9 @@ const ETH_CALL_GAS: u32 = 50_000_000;
 //
 // [1] - https://www.sciencedirect.com/science/article/abs/pii/S0166531620300900
 pub const ETHEREUM_CALL: Gas = Gas::new(5_000_000_000);
+
+// TODO: Determine the appropriate gas cost for `ETH_GET_BALANCE`, initially aligned with `ETHEREUM_CALL`.
+pub const ETH_GET_BALANCE: Gas = Gas::new(5_000_000_000);
 
 pub struct RuntimeAdapter {
     pub eth_adapters: Arc<EthereumNetworkAdapters>,
@@ -91,7 +98,19 @@ impl blockchain::RuntimeAdapter<Chain> for RuntimeAdapter {
             }),
         };
 
-        Ok(vec![ethereum_call])
+        let eth_adapters = self.eth_adapters.cheap_clone();
+        let ethereum_get_balance = HostFn {
+            name: "ethereum.getBalance",
+            func: Arc::new(move |ctx, wasm_ptr| {
+                let eth_adapter = eth_adapters.cheapest_with(&NodeCapabilities {
+                    archive,
+                    traces: false,
+                })?;
+                eth_get_balance(&eth_adapter, ctx, wasm_ptr).map(|ptr| ptr.wasm_ptr())
+            }),
+        };
+
+        Ok(vec![ethereum_call, ethereum_get_balance])
     }
 }
 
@@ -99,7 +118,7 @@ impl blockchain::RuntimeAdapter<Chain> for RuntimeAdapter {
 fn ethereum_call(
     eth_adapter: &EthereumAdapter,
     call_cache: Arc<dyn EthereumCallCache>,
-    ctx: HostFnCtx<'_>,
+    ctx: HostFnCtx,
     wasm_ptr: u32,
     abis: &[Arc<MappingABI>],
     eth_call_gas: Option<u32>,
@@ -129,6 +148,44 @@ fn ethereum_call(
     match result {
         Some(tokens) => Ok(asc_new(ctx.heap, tokens.as_slice(), &ctx.gas)?),
         None => Ok(AscPtr::null()),
+    }
+}
+
+fn eth_get_balance(
+    eth_adapter: &EthereumAdapter,
+    ctx: HostFnCtx<'_>,
+    wasm_ptr: u32,
+) -> Result<AscPtr<AscBigInt>, HostExportError> {
+    ctx.gas
+        .consume_host_fn_with_metrics(ETH_GET_BALANCE, "eth_get_balance")?;
+
+    if ctx.heap.api_version() < API_VERSION_0_0_9 {
+        return Err(HostExportError::Deterministic(anyhow!(
+            "ethereum.getBalance call is not supported before API version 0.0.9"
+        )));
+    }
+
+    let logger = &ctx.logger;
+    let block_ptr = &ctx.block_ptr;
+
+    let address: H160 = asc_get(ctx.heap, wasm_ptr.into(), &ctx.gas, 0)?;
+
+    let result = graph::block_on(
+        eth_adapter
+            .get_balance(logger, address, block_ptr.clone())
+            .compat(),
+    );
+
+    match result {
+        Ok(v) => {
+            let bigint = BigInt::from_unsigned_u256(&v);
+            Ok(asc_new(ctx.heap, &bigint, &ctx.gas)?)
+        }
+        // Retry on any kind of error
+        Err(EthereumGetBalanceError::Web3Error(e)) => Err(HostExportError::PossibleReorg(e.into())),
+        Err(EthereumGetBalanceError::Timeout) => Err(HostExportError::PossibleReorg(
+            EthereumGetBalanceError::Timeout.into(),
+        )),
     }
 }
 
@@ -250,7 +307,6 @@ fn eth_call(
     metrics.observe_eth_call_execution_time(
         elapsed.as_secs_f64(),
         &unresolved_call.contract_name,
-        &unresolved_call.contract_address.to_string(),
         &unresolved_call.function_name,
     );
 

@@ -1,3 +1,4 @@
+use graph::components::store::ChildMultiplicity;
 use graph::data::graphql::DocumentExt as _;
 use graph::data::value::{Object, Word};
 use graph::schema::ApiSchema;
@@ -13,8 +14,8 @@ use std::time::Instant;
 use std::{collections::hash_map::DefaultHasher, convert::TryFrom};
 
 use graph::data::graphql::{ext::TypeExt, ObjectOrInterface};
-use graph::data::query::QueryExecutionError;
 use graph::data::query::{Query as GraphDataQuery, QueryVariables};
+use graph::data::query::{QueryExecutionError, Trace};
 use graph::prelude::{
     info, o, q, r, s, warn, BlockNumber, CheapClone, DeploymentHash, EntityRange, GraphQLMetrics,
     Logger, TryFromValue, ENV_VARS,
@@ -279,6 +280,15 @@ impl Query {
         };
 
         Ok(Arc::new(query))
+    }
+
+    pub fn root_trace(&self, do_trace: bool) -> Trace {
+        Trace::root(
+            &self.query_text,
+            &self.variables_text,
+            &self.query_id,
+            do_trace,
+        )
     }
 
     /// Return the block constraint for the toplevel query field(s), merging
@@ -908,6 +918,7 @@ impl Transform {
                 arguments: vec![],
                 directives: vec![],
                 selection_set: a::SelectionSet::new(vec![]),
+                multiplicity: ChildMultiplicity::Single,
             }));
         }
 
@@ -946,6 +957,7 @@ impl Transform {
             self.expand_selection_set(selection_set, &type_set, ty)?
         };
 
+        let multiplicity = ChildMultiplicity::new(field_type);
         Ok(Some(a::Field {
             position,
             alias,
@@ -953,6 +965,7 @@ impl Transform {
             arguments,
             directives,
             selection_set,
+            multiplicity,
         }))
     }
 

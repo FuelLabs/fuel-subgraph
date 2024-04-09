@@ -29,8 +29,8 @@ use graph_chain_starknet::{self as starknet, Block as StarknetBlock};
 use graph_chain_substreams as substreams;
 use graph_core::polling_monitor::{arweave_service, ipfs_service};
 use graph_core::{
-    LinkResolver, SubgraphAssignmentProvider as IpfsSubgraphAssignmentProvider,
-    SubgraphInstanceManager, SubgraphRegistrar as IpfsSubgraphRegistrar,
+    SubgraphAssignmentProvider as IpfsSubgraphAssignmentProvider, SubgraphInstanceManager,
+    SubgraphRegistrar as IpfsSubgraphRegistrar,
 };
 use graph_graphql::prelude::GraphQlRunner;
 use graph_node::chain::{
@@ -120,12 +120,6 @@ async fn main() {
 
     // Set up logger
     let logger = logger(opt.debug);
-
-    info!(
-        logger,
-        "Graph Node version: {}",
-        render_testament!(TESTAMENT)
-    );
 
     // Log version information
     info!(
@@ -267,7 +261,7 @@ async fn main() {
 
     // Convert the clients into a link resolver. Since we want to get past
     // possible temporary DNS failures, make the resolver retry
-    let link_resolver = Arc::new(LinkResolver::new(ipfs_clients, env_vars.cheap_clone()));
+    let link_resolver = Arc::new(IpfsResolver::new(ipfs_clients, env_vars.cheap_clone()));
     let mut metrics_server =
         PrometheusMetricsServer::new(&logger_factory, prometheus_registry.clone());
 
@@ -628,7 +622,6 @@ async fn main() {
             version_switching_mode,
             Arc::new(subgraph_settings),
         ));
-
         graph::spawn(
             subgraph_registrar
                 .start()

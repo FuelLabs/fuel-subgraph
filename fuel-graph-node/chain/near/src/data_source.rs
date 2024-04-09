@@ -1,15 +1,13 @@
 use graph::anyhow::Context;
 use graph::blockchain::{Block, TriggerWithHandler};
 use graph::components::store::StoredDynamicDataSource;
+use graph::components::subgraph::InstanceDSTemplateInfo;
 use graph::data::subgraph::DataSourceContext;
 use graph::prelude::SubgraphManifestValidationError;
 use graph::{
     anyhow::{anyhow, Error},
     blockchain::{self, Blockchain},
-    prelude::{
-        async_trait, BlockNumber, CheapClone, DataSourceTemplateInfo, Deserialize, Link,
-        LinkResolver, Logger,
-    },
+    prelude::{async_trait, BlockNumber, CheapClone, Deserialize, Link, LinkResolver, Logger},
     semver,
 };
 use std::collections::HashSet;
@@ -35,7 +33,10 @@ pub struct DataSource {
 }
 
 impl blockchain::DataSource<Chain> for DataSource {
-    fn from_template_info(_template_info: DataSourceTemplateInfo<Chain>) -> Result<Self, Error> {
+    fn from_template_info(
+        _info: InstanceDSTemplateInfo,
+        _template: &graph::data_source::DataSourceTemplate<Chain>,
+    ) -> Result<Self, Error> {
         Err(anyhow!("Near subgraphs do not support templates"))
 
         // How this might be implemented if/when Near gets support for templates:
@@ -70,52 +71,12 @@ impl blockchain::DataSource<Chain> for DataSource {
         // })
     }
 
-    fn from_stored_dynamic_data_source(
-        _template: &DataSourceTemplate,
-        _stored: StoredDynamicDataSource,
-    ) -> Result<Self, Error> {
-        // FIXME (NEAR): Implement me correctly
-        todo!()
-    }
-
     fn address(&self) -> Option<&[u8]> {
         self.source.account.as_ref().map(String::as_bytes)
     }
 
     fn start_block(&self) -> BlockNumber {
         self.source.start_block
-    }
-
-    fn end_block(&self) -> Option<BlockNumber> {
-        self.source.end_block
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn kind(&self) -> &str {
-        &self.kind
-    }
-
-    fn network(&self) -> Option<&str> {
-        self.network.as_deref()
-    }
-
-    fn context(&self) -> Arc<Option<DataSourceContext>> {
-        self.context.cheap_clone()
-    }
-
-    fn creation_block(&self) -> Option<BlockNumber> {
-        self.creation_block
-    }
-
-    fn api_version(&self) -> semver::Version {
-        self.mapping.api_version.clone()
-    }
-
-    fn runtime(&self) -> Option<Arc<Vec<u8>>> {
-        Some(self.mapping.runtime.cheap_clone())
     }
 
     fn handler_kinds(&self) -> HashSet<&str> {
@@ -130,6 +91,10 @@ impl blockchain::DataSource<Chain> for DataSource {
         }
 
         kinds
+    }
+
+    fn end_block(&self) -> Option<BlockNumber> {
+        self.source.end_block
     }
 
     fn match_and_decode(
@@ -199,7 +164,28 @@ impl blockchain::DataSource<Chain> for DataSource {
             trigger.cheap_clone(),
             handler.clone(),
             block.ptr(),
+            block.timestamp(),
         )))
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn kind(&self) -> &str {
+        &self.kind
+    }
+
+    fn network(&self) -> Option<&str> {
+        self.network.as_deref()
+    }
+
+    fn context(&self) -> Arc<Option<DataSourceContext>> {
+        self.context.cheap_clone()
+    }
+
+    fn creation_block(&self) -> Option<BlockNumber> {
+        self.creation_block
     }
 
     fn is_duplicate_of(&self, other: &Self) -> bool {
@@ -229,6 +215,14 @@ impl blockchain::DataSource<Chain> for DataSource {
 
     fn as_stored_dynamic_data_source(&self) -> StoredDynamicDataSource {
         // FIXME (NEAR): Implement me!
+        todo!()
+    }
+
+    fn from_stored_dynamic_data_source(
+        _template: &DataSourceTemplate,
+        _stored: StoredDynamicDataSource,
+    ) -> Result<Self, Error> {
+        // FIXME (NEAR): Implement me correctly
         todo!()
     }
 
@@ -279,6 +273,14 @@ impl blockchain::DataSource<Chain> for DataSource {
         }
 
         errors
+    }
+
+    fn api_version(&self) -> semver::Version {
+        self.mapping.api_version.clone()
+    }
+
+    fn runtime(&self) -> Option<Arc<Vec<u8>>> {
+        Some(self.mapping.runtime.cheap_clone())
     }
 }
 

@@ -1,8 +1,10 @@
-use diesel::deserialize::FromSql;
+use chrono::{DateTime, Utc};
+use diesel::deserialize::{FromSql, FromSqlRow};
+use diesel::expression::AsExpression;
 use diesel::serialize::ToSql;
-use diesel_derives::{AsExpression, FromSqlRow};
 use hex;
 use num_bigint;
+use num_traits::FromPrimitive;
 use serde::{self, Deserialize, Serialize};
 use stable_hash::utils::AsInt;
 use stable_hash::{FieldAddress, StableHash};
@@ -12,7 +14,7 @@ use web3::types::*;
 
 use std::convert::{TryFrom, TryInto};
 use std::fmt::{self, Display, Formatter};
-use std::io::Write;
+use std::num::ParseIntError;
 use std::ops::{Add, BitAnd, BitOr, Deref, Div, Mul, Rem, Shl, Shr, Sub};
 use std::str::FromStr;
 
@@ -30,7 +32,7 @@ use crate::util::stable_hash_glue::{impl_stable_hash, AsBytes};
     Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, AsExpression, FromSqlRow,
 )]
 #[serde(from = "bigdecimal::BigDecimal")]
-#[sql_type = "diesel::sql_types::Numeric"]
+#[diesel(sql_type = diesel::sql_types::Numeric)]
 pub struct BigDecimal(bigdecimal::BigDecimal);
 
 impl From<bigdecimal::BigDecimal> for BigDecimal {
@@ -131,7 +133,7 @@ impl From<u64> for BigDecimal {
 
 impl From<f64> for BigDecimal {
     fn from(n: f64) -> Self {
-        Self::from(bigdecimal::BigDecimal::from(n))
+        Self::from(bigdecimal::BigDecimal::from_f64(n).unwrap_or_default())
     }
 }
 
@@ -173,18 +175,16 @@ impl Div for BigDecimal {
 
 // Used only for JSONB support
 impl ToSql<diesel::sql_types::Numeric, diesel::pg::Pg> for BigDecimal {
-    fn to_sql<W: Write>(
-        &self,
-        out: &mut diesel::serialize::Output<W, diesel::pg::Pg>,
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, diesel::pg::Pg>,
     ) -> diesel::serialize::Result {
-        <_ as ToSql<diesel::sql_types::Numeric, _>>::to_sql(&self.0, out)
+        <_ as ToSql<diesel::sql_types::Numeric, _>>::to_sql(&self.0, &mut out.reborrow())
     }
 }
 
 impl FromSql<diesel::sql_types::Numeric, diesel::pg::Pg> for BigDecimal {
-    fn from_sql(
-        bytes: Option<&<diesel::pg::Pg as diesel::backend::Backend>::RawValue>,
-    ) -> diesel::deserialize::Result<Self> {
+    fn from_sql(bytes: diesel::pg::PgValue) -> diesel::deserialize::Result<Self> {
         Ok(Self::from(bigdecimal::BigDecimal::from_sql(bytes)?))
     }
 }
@@ -297,7 +297,7 @@ mod big_int {
         }
 
         pub fn bits(&self) -> usize {
-            self.0.bits()
+            self.0.bits() as usize
         }
 
         pub(super) fn inner(self) -> num_bigint::BigInt {
@@ -679,11 +679,88 @@ impl From<Vec<u8>> for Bytes {
 }
 
 impl ToSql<diesel::sql_types::Binary, diesel::pg::Pg> for Bytes {
-    fn to_sql<W: Write>(
-        &self,
-        out: &mut diesel::serialize::Output<W, diesel::pg::Pg>,
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, diesel::pg::Pg>,
     ) -> diesel::serialize::Result {
-        <_ as ToSql<diesel::sql_types::Binary, _>>::to_sql(self.as_slice(), out)
+        <_ as ToSql<diesel::sql_types::Binary, _>>::to_sql(self.as_slice(), &mut out.reborrow())
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+pub struct Timestamp(pub DateTime<Utc>);
+
+#[derive(thiserror::Error, Debug)]
+pub enum TimestampError {
+    #[error("Invalid timestamp string: {0}")]
+    StringParseError(ParseIntError),
+    #[error("Invalid timestamp format")]
+    InvalidTimestamp,
+}
+
+impl Timestamp {
+    pub fn parse_timestamp(v: &str) -> Result<Self, TimestampError> {
+        let as_num: i64 = v.parse().map_err(TimestampError::StringParseError)?;
+        Timestamp::from_microseconds_since_epoch(as_num)
+    }
+
+    pub fn from_rfc3339(v: &str) -> Result<Self, chrono::ParseError> {
+        Ok(Timestamp(DateTime::parse_from_rfc3339(v)?.into()))
+    }
+
+    pub fn from_microseconds_since_epoch(micros: i64) -> Result<Self, TimestampError> {
+        let secs = micros / 1_000_000;
+        let ns = (micros % 1_000_000) * 1_000;
+
+        match DateTime::from_timestamp(secs, ns as u32) {
+            Some(dt) => Ok(Self(dt)),
+            None => Err(TimestampError::InvalidTimestamp),
+        }
+    }
+
+    pub fn as_microseconds_since_epoch(&self) -> i64 {
+        self.0.timestamp_micros()
+    }
+}
+
+impl StableHash for Timestamp {
+    fn stable_hash<H: stable_hash::StableHasher>(&self, field_address: H::Addr, state: &mut H) {
+        self.0.timestamp_micros().stable_hash(field_address, state)
+    }
+}
+
+impl stable_hash_legacy::StableHash for Timestamp {
+    fn stable_hash<H: stable_hash_legacy::StableHasher>(
+        &self,
+        sequence_number: H::Seq,
+        state: &mut H,
+    ) {
+        stable_hash_legacy::StableHash::stable_hash(
+            &self.0.timestamp_micros(),
+            sequence_number,
+            state,
+        )
+    }
+}
+
+impl Display for Timestamp {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", self.as_microseconds_since_epoch())
+    }
+}
+
+impl ToSql<diesel::sql_types::Timestamptz, diesel::pg::Pg> for Timestamp {
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, diesel::pg::Pg>,
+    ) -> diesel::serialize::Result {
+        <_ as ToSql<diesel::sql_types::Timestamptz, _>>::to_sql(&self.0, &mut out.reborrow())
+    }
+}
+
+impl GasSizeOf for Timestamp {
+    fn const_gas_size_of() -> Option<Gas> {
+        Some(Gas::new(std::mem::size_of::<Timestamp>().saturating_into()))
     }
 }
 

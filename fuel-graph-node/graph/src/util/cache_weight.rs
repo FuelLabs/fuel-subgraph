@@ -6,6 +6,7 @@ use crate::{
 use std::{
     collections::{BTreeMap, HashMap},
     mem,
+    sync::Arc,
 };
 
 /// Estimate of how much memory a value consumes.
@@ -27,6 +28,12 @@ impl<T: CacheWeight> CacheWeight for Option<T> {
             Some(x) => x.indirect_weight(),
             None => 0,
         }
+    }
+}
+
+impl<T: CacheWeight> CacheWeight for Arc<T> {
+    fn indirect_weight(&self) -> usize {
+        (**self).indirect_weight()
     }
 }
 
@@ -93,7 +100,9 @@ impl CacheWeight for Value {
             Value::List(values) => values.indirect_weight(),
             Value::Bytes(bytes) => bytes.indirect_weight(),
             Value::BigInt(n) => n.indirect_weight(),
-            Value::Int8(_) | Value::Int(_) | Value::Bool(_) | Value::Null => 0,
+            Value::Timestamp(_) | Value::Int8(_) | Value::Int(_) | Value::Bool(_) | Value::Null => {
+                0
+            }
         }
     }
 }

@@ -140,6 +140,7 @@ pub fn create_substreams_networks(
                             &provider.label,
                             &firehose.url,
                             firehose.token.clone(),
+                            firehose.key.clone(),
                             firehose.filters_enabled(),
                             firehose.compression_enabled(),
                             SubgraphLimit::Unlimited,
@@ -196,6 +197,7 @@ pub fn create_firehose_networks(
                             &provider.label,
                             &firehose.url,
                             firehose.token.clone(),
+                            firehose.key.clone(),
                             firehose.filters_enabled(),
                             firehose.compression_enabled(),
                             firehose.limit_for(&config.node),
@@ -246,7 +248,6 @@ pub async fn connect_ethereum_networks(
                     Ok(Err(e)) | Err(e) => {
                         error!(logger, "Connection to provider failed. Not using this provider";
                                        "error" =>  e.to_string());
-
                         ProviderNetworkStatus::Broken {
                             chain_id: network,
                             provider: eth_adapter.provider().to_string(),
@@ -333,7 +334,6 @@ where
                 );
 
                 let retry_endpoint = endpoint.clone();
-
                 let retry_logger = logger.clone();
                 let req = retry("firehose startup connection test", &logger)
                     .no_limit()

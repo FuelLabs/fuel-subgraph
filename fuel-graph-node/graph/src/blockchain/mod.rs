@@ -20,17 +20,15 @@ use crate::{
     components::{
         store::{DeploymentCursorTracker, DeploymentLocator, StoredDynamicDataSource},
         subgraph::HostMetrics,
+        subgraph::InstanceDSTemplateInfo,
     },
     data::subgraph::{UnifiedMappingApiVersion, MIN_SPEC_VERSION},
-    data_source,
+    data_source::{self, DataSourceTemplateInfo},
     prelude::DataSourceContext,
     runtime::{gas::GasCounter, AscHeap, HostExportError},
 };
 use crate::{
-    components::{
-        store::{BlockNumber, ChainStore},
-        subgraph::DataSourceTemplateInfo,
-    },
+    components::store::{BlockNumber, ChainStore},
     prelude::{thiserror::Error, LinkResolver},
 };
 use anyhow::{anyhow, Context, Error};
@@ -51,7 +49,7 @@ pub use block_stream::{ChainHeadUpdateListener, ChainHeadUpdateStream, TriggersA
 pub use builder::{BasicBlockchainBuilder, BlockchainBuilder};
 pub use empty_node_capabilities::EmptyNodeCapabilities;
 pub use noop_runtime_adapter::NoopRuntimeAdapter;
-pub use types::{BlockHash, BlockPtr, ChainIdentifier};
+pub use types::{BlockHash, BlockPtr, BlockTime, ChainIdentifier};
 
 use self::{
     block_stream::{BlockStream, FirehoseCursor},
@@ -94,6 +92,8 @@ pub trait Block: Send + Sync {
     fn data(&self) -> Result<serde_json::Value, serde_json::Error> {
         Ok(serde_json::Value::Null)
     }
+
+    fn timestamp(&self) -> BlockTime;
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -249,7 +249,10 @@ pub trait TriggerFilter<C: Blockchain>: Default + Clone + Send + Sync {
 }
 
 pub trait DataSource<C: Blockchain>: 'static + Sized + Send + Sync + Clone {
-    fn from_template_info(info: DataSourceTemplateInfo<C>) -> Result<Self, Error>;
+    fn from_template_info(
+        info: InstanceDSTemplateInfo,
+        template: &data_source::DataSourceTemplate<C>,
+    ) -> Result<Self, Error>;
 
     fn from_stored_dynamic_data_source(
         template: &C::DataSourceTemplate,
@@ -323,6 +326,15 @@ pub trait DataSourceTemplate<C: Blockchain>: Send + Sync + Debug {
     fn name(&self) -> &str;
     fn manifest_idx(&self) -> u32;
     fn kind(&self) -> &str;
+    fn info(&self) -> DataSourceTemplateInfo {
+        DataSourceTemplateInfo {
+            api_version: self.api_version(),
+            runtime: self.runtime(),
+            name: self.name().to_string(),
+            manifest_idx: Some(self.manifest_idx()),
+            kind: self.kind().to_string(),
+        }
+    }
 }
 
 #[async_trait]

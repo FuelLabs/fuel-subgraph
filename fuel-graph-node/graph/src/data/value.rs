@@ -1,15 +1,15 @@
 use crate::prelude::{q, s, CacheWeight};
 use crate::runtime::gas::{Gas, GasSizeOf, SaturatingInto};
 use diesel::pg::Pg;
-use diesel::serialize::{self, Output};
+use diesel::serialize::{self, Output, ToSql};
 use diesel::sql_types::Text;
-use diesel::types::ToSql;
 use serde::ser::{SerializeMap, SerializeSeq, Serializer};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::convert::TryFrom;
-use std::io::Write;
 use std::iter::FromIterator;
+
+use super::store::scalar;
 
 /// An immutable string that is more memory-efficient since it only has an
 /// overhead of 16 bytes for storing a string vs the 24 bytes that `String`
@@ -74,8 +74,8 @@ impl<'de> serde::Deserialize<'de> for Word {
 }
 
 impl ToSql<Text, Pg> for Word {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
-        <str as ToSql<Text, Pg>>::to_sql(&self.0, out)
+    fn to_sql(&self, out: &mut Output<Pg>) -> serialize::Result {
+        <str as ToSql<Text, Pg>>::to_sql(&self.0, &mut out.reborrow())
     }
 }
 
@@ -307,6 +307,7 @@ pub enum Value {
     Enum(String),
     List(Vec<Value>),
     Object(Object),
+    Timestamp(scalar::Timestamp),
 }
 
 impl Value {
@@ -350,6 +351,10 @@ impl Value {
             }
             ("Int8", Value::Int(num)) => Ok(Value::String(num.to_string())),
             ("Int8", Value::String(num)) => Ok(Value::String(num)),
+            ("Timestamp", Value::Timestamp(ts)) => Ok(Value::Timestamp(ts)),
+            ("Timestamp", Value::String(ts_str)) => Ok(Value::Timestamp(
+                scalar::Timestamp::parse_timestamp(&ts_str).map_err(|_| Value::String(ts_str))?,
+            )),
             ("String", Value::String(s)) => Ok(Value::String(s)),
             ("ID", Value::String(s)) => Ok(Value::String(s)),
             ("ID", Value::Int(n)) => Ok(Value::String(n.to_string())),
@@ -396,6 +401,9 @@ impl std::fmt::Display for Value {
                 }
                 write!(f, "}}")
             }
+            Value::Timestamp(ref ts) => {
+                write!(f, "\"{}\"", ts.as_microseconds_since_epoch().to_string())
+            }
         }
     }
 }
@@ -403,7 +411,11 @@ impl std::fmt::Display for Value {
 impl CacheWeight for Value {
     fn indirect_weight(&self) -> usize {
         match self {
-            Value::Boolean(_) | Value::Int(_) | Value::Null | Value::Float(_) => 0,
+            Value::Boolean(_)
+            | Value::Int(_)
+            | Value::Null
+            | Value::Float(_)
+            | Value::Timestamp(_) => 0,
             Value::Enum(s) | Value::String(s) => s.indirect_weight(),
             Value::List(l) => l.indirect_weight(),
             Value::Object(o) => o.indirect_weight(),
@@ -427,6 +439,9 @@ impl Serialize for Value {
                     seq.serialize_element(v)?;
                 }
                 seq.end()
+            }
+            Value::Timestamp(ts) => {
+                serializer.serialize_str(&ts.as_microseconds_since_epoch().to_string().as_str())
             }
             Value::Null => serializer.serialize_none(),
             Value::String(s) => serializer.serialize_str(s),
@@ -521,6 +536,7 @@ impl From<Value> for q::Value {
                 }
                 q::Value::Object(rmap)
             }
+            Value::Timestamp(ts) => q::Value::String(ts.as_microseconds_since_epoch().to_string()),
         }
     }
 }
@@ -536,6 +552,9 @@ impl std::fmt::Debug for Value {
             Value::Enum(e) => write!(f, "{e}"),
             Value::List(l) => f.debug_list().entries(l).finish(),
             Value::Object(o) => write!(f, "{o:?}"),
+            Value::Timestamp(ts) => {
+                write!(f, "{:?}", ts.as_microseconds_since_epoch().to_string())
+            }
         }
     }
 }

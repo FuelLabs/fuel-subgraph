@@ -1,8 +1,7 @@
 use ethabi;
-use semver::Version;
 
 use graph::{
-    data::store,
+    data::store::{self, scalar::Timestamp},
     runtime::{
         gas::GasCounter, AscHeap, AscIndexId, AscType, AscValue, HostExportError,
         IndexForAscTypeId, ToAscObj,
@@ -13,6 +12,7 @@ use graph::{prelude::slog, runtime::AscPtr};
 use graph_runtime_derive::AscType;
 
 use crate::asc_abi::{v0_0_4, v0_0_5};
+use semver::Version;
 
 ///! Rust types that have with a direct correspondence to an Asc class,
 ///! with their `AscType` implementations.
@@ -83,7 +83,6 @@ impl AscIndexId for ArrayBuffer {
 
 /// Wrapper of TypedArray for multiple AssemblyScript versions.
 /// It just delegates its method calls to the correct mappings apiVersion.
-///
 pub enum TypedArray<T> {
     ApiVersion0_0_4(v0_0_4::TypedArray<T>),
     ApiVersion0_0_5(v0_0_5::TypedArray<T>),
@@ -142,7 +141,6 @@ impl<T> AscType for TypedArray<T> {
 }
 
 pub struct Bytes<'a>(pub &'a Vec<u8>);
-pub struct Bytes64<'a>(pub &'a Vec<u64>);
 
 pub type Uint8Array = TypedArray<u8>;
 impl ToAscObj<Uint8Array> for Bytes<'_> {
@@ -151,18 +149,6 @@ impl ToAscObj<Uint8Array> for Bytes<'_> {
         heap: &mut H,
         gas: &GasCounter,
     ) -> Result<Uint8Array, HostExportError> {
-        self.0.to_asc_obj(heap, gas)
-    }
-}
-
-pub type Uint64Array = TypedArray<u64>;
-
-impl ToAscObj<TypedArray<u64>> for Bytes64<'_> {
-    fn to_asc_obj<H: AscHeap + ?Sized>(
-        &self,
-        heap: &mut H,
-        gas: &GasCounter,
-    ) -> Result<TypedArray<u64>, HostExportError> {
         self.0.to_asc_obj(heap, gas)
     }
 }
@@ -478,6 +464,12 @@ impl From<i64> for EnumPayload {
     }
 }
 
+impl From<&Timestamp> for EnumPayload {
+    fn from(x: &Timestamp) -> EnumPayload {
+        EnumPayload::from(x.as_microseconds_since_epoch())
+    }
+}
+
 impl<C> From<EnumPayload> for AscPtr<C> {
     fn from(payload: EnumPayload) -> Self {
         AscPtr::new(payload.0 as u32)
@@ -567,6 +559,7 @@ pub enum StoreValueKind {
     Bytes,
     BigInt,
     Int8,
+    Timestamp,
 }
 
 impl StoreValueKind {
@@ -577,6 +570,7 @@ impl StoreValueKind {
             Value::String(_) => StoreValueKind::String,
             Value::Int(_) => StoreValueKind::Int,
             Value::Int8(_) => StoreValueKind::Int8,
+            Value::Timestamp(_) => StoreValueKind::Timestamp,
             Value::BigDecimal(_) => StoreValueKind::BigDecimal,
             Value::Bool(_) => StoreValueKind::Bool,
             Value::List(_) => StoreValueKind::Array,

@@ -4,8 +4,11 @@ use graph::runtime::{
     AscType, DeterministicHostError, HostExportError, IndexForAscTypeId, ToAscObj,
 };
 pub use graph::semver::Version;
-use graph_runtime_wasm::asc_abi::class::Uint64Array;
+use graph_runtime_wasm::asc_abi::class::TypedArray;
 use std::u64;
+
+
+pub type Uint64Array = TypedArray<u64>;
 
 pub struct AscBytesArray(pub Array<AscPtr<Uint8Array>>);
 pub struct Ascu64Array(pub Array<AscPtr<Uint64Array>>);

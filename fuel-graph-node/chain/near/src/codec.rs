@@ -8,7 +8,7 @@ pub mod substreams_triggers;
 
 use graph::{
     blockchain::Block as BlockchainBlock,
-    blockchain::BlockPtr,
+    blockchain::{BlockPtr, BlockTime},
     prelude::{hex, web3::types::H256, BlockNumber},
 };
 use std::convert::TryFrom;
@@ -64,6 +64,10 @@ impl<'a> From<&'a Block> for BlockPtr {
 }
 
 impl BlockchainBlock for Block {
+    fn number(&self) -> i32 {
+        BlockNumber::try_from(self.header().height).unwrap()
+    }
+
     fn ptr(&self) -> BlockPtr {
         self.into()
     }
@@ -72,8 +76,8 @@ impl BlockchainBlock for Block {
         self.parent_ptr()
     }
 
-    fn number(&self) -> i32 {
-        BlockNumber::try_from(self.header().height).unwrap()
+    fn timestamp(&self) -> BlockTime {
+        block_time_from_header(self.header())
     }
 }
 
@@ -90,6 +94,10 @@ impl<'a> From<&'a HeaderOnlyBlock> for BlockPtr {
 }
 
 impl BlockchainBlock for HeaderOnlyBlock {
+    fn number(&self) -> i32 {
+        BlockNumber::try_from(self.header().height).unwrap()
+    }
+
     fn ptr(&self) -> BlockPtr {
         self.into()
     }
@@ -98,8 +106,8 @@ impl BlockchainBlock for HeaderOnlyBlock {
         self.header().parent_ptr()
     }
 
-    fn number(&self) -> i32 {
-        BlockNumber::try_from(self.header().height).unwrap()
+    fn timestamp(&self) -> BlockTime {
+        block_time_from_header(self.header())
     }
 }
 
@@ -111,4 +119,26 @@ impl execution_outcome::Status {
             SuccessValue(_) | SuccessReceiptId(_) => true,
         }
     }
+}
+
+fn block_time_from_header(header: &BlockHeader) -> BlockTime {
+    // The timstamp is in ns since the epoch
+    let ts = i64::try_from(header.timestamp_nanosec).unwrap();
+    let secs = ts / 1_000_000_000;
+    let ns: u32 = (ts % 1_000_000_000) as u32;
+    BlockTime::since_epoch(secs, ns)
+}
+
+#[test]
+fn timestamp_conversion() {
+    // 2020-07-21T21:50:10Z in ns
+    let ts = 1_595_368_210_762_782_796;
+    let header = BlockHeader {
+        timestamp_nanosec: ts,
+        ..Default::default()
+    };
+    assert_eq!(
+        1595368210,
+        block_time_from_header(&header).as_secs_since_epoch()
+    );
 }

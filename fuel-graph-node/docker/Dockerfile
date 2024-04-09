@@ -19,6 +19,7 @@ ARG COMMIT_SHA=unknown
 ARG REPO_NAME=unknown
 ARG BRANCH_NAME=unknown
 ARG TAG_NAME=unknown
+
 ADD . /graph-node
 
 RUN apt-get update \

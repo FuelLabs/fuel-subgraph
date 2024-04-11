@@ -7,17 +7,13 @@ start:
   - substreams-tier1
   - substreams-tier2
   flags:
-    # Specifies the path to the binary, we assume you did
-    # `go install github.com/streamingfast/dummy-blockchain@latest` (and that you have value
-    # of `go env GOPATH` in your environment).
+
+    # The first block available for Firehose consumption, used in various places
+    common-first-streamable-block: 1
     reader-node-path: "../../../firehose-extract/target/debug/firehose-extract"
     reader-node-data-dir: "{data-dir}/reader-node"
-#    common-first-streamable-block: 0
-    reader-node-arguments: http://127.0.0.1:4000 0
 
-#    reader-node-grpc-listen-addr: 127.0.0.1:10019
-
-#    common-live-blocks-addr: ""
+    reader-node-arguments: beta-5.fuel.network 0
 
     # Flags that will be added to the dummy chain process command
 #    reader-node-start-block-num: 1

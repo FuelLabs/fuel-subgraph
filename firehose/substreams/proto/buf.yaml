@@ -1,0 +1,17 @@
+version: v1
+name: buf.build/streamingfast/substreams
+
+deps: []
+
+build:
+  excludes:
+  - google
+  - sf/substreams/v1/test
+
+lint:
+  use:
+    - DEFAULT
+
+breaking:
+  use:
+    - FILE

@@ -1,0 +1,6 @@
+global:
+  binary: substreams
+  language: golang
+  variant: application
+release:
+  changelog-path: "./docs/release-notes/change-log.md"

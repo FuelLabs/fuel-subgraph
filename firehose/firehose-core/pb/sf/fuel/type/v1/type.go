@@ -14,7 +14,6 @@ func (b *Block) GetFirehoseBlockNumber() uint64 {
 }
 
 func (b *Block) GetFirehoseBlockParentNumber() uint64 {
-	// TODO: This needs to be adapted for your own chain rules!
 	return b.GetFirehoseBlockNumber() - 1
 }
 
@@ -32,10 +31,5 @@ func (b *Block) GetFirehoseBlockVersion() int32 {
 }
 
 func (b *Block) GetFirehoseBlockLIBNum() uint64 {
-	if b.Height == 0 {
-		return 0
-	}
-
-	// TODO: This needs to be adapted for your own chain rules!
-	return b.GetFirehoseBlockNumber() - 1
+	return b.GetFirehoseBlockNumber()
 }

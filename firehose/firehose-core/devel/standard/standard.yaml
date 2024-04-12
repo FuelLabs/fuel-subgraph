@@ -14,6 +14,8 @@ start:
     reader-node-data-dir: "{data-dir}/reader-node"
 
     reader-node-arguments: beta-5.fuel.network 0
+#    reader-node-arguments: http://localhost:4000 0
+#    common-live-blocks-addr: ""
 
     # Flags that will be added to the dummy chain process command
 #    reader-node-start-block-num: 1

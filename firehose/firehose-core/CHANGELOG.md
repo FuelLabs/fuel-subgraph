@@ -8,6 +8,33 @@ Operators, you should copy/paste content of this content straight to your projec
 
 If you were at `firehose-core` version `1.0.0` and are bumping to `1.1.0`, you should copy the content between those 2 version to your own repository, replacing placeholder value `fire{chain}` with your chain's own binary.
 
+## Unreleased
+
+* bump go-generics to v3.4.0
+
+## v1.3.5
+
+### Substreams fixes
+
+* fix a possible panic() when an request is interrupted during the file loading phase of a squashing operation.
+* fix a rare possibility of stalling if only some fullkv stores caches were deleted, but further segments were still present.
+* fix stats counters for store operations time
+
+## v1.3.4
+
+* add `DefaultBlockType` into `firehose.Chain` struct, enabling default block type setting for known chain
+
+### substreams
+
+* bumped to v1.5.3
+* add `--block-type` flag that can be specified when creating substreams tier1. If not specified, tier1 will auto-detect block type from source.
+* fix memory leak on substreams execution (by bumping wazero dependency)
+* prevent substreams-tier1 stopping if blocktype auto-detection times out
+* fix missing error handling when writing output data to files. This could result in tier1 request just "hanging" waiting for the file never produced by tier2.
+* fix handling of dstore error in tier1 'execout walker' causing stalling issues on S3 or on unexpected storage errors
+* increase number of retries on storage when writing states or execouts (5 -> 10)
+* prevent slow squashing when loading each segment from full KV store (can happen when a stage contains multiple stores)
+
 ## v1.3.3
 
 ### substreams

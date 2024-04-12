@@ -16,6 +16,7 @@ package check
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -28,7 +29,6 @@ import (
 	"github.com/streamingfast/firehose-core/types"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 func NewCheckCommand[B firecore.Block](chain *firecore.Chain[B], rootLog *zap.Logger) *cobra.Command {
@@ -150,8 +150,16 @@ func toolsCheckForksE(cmd *cobra.Command, args []string) error {
 	}
 
 	sortedKeys := maps.Keys(links)
-	slices.SortFunc(sortedKeys, func(a, b string) bool {
-		return links[a][0].Num < links[b][0].Num
+	slices.SortFunc(sortedKeys, func(a, b string) int {
+		if links[a][0].Num < links[b][0].Num {
+			return -1
+		}
+
+		if links[a][0].Num == links[b][0].Num {
+			return 0
+		}
+
+		return 1
 	})
 
 	minDepth := sflags.MustGetInt(cmd, "min-depth")

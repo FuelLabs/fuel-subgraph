@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"os"
 
+	"slices"
+
 	"github.com/go-json-experiment/json"
 	"github.com/go-json-experiment/json/jsontext"
 	"github.com/mr-tron/base58"
 	"github.com/streamingfast/firehose-core/proto"
-	"golang.org/x/exp/slices"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -165,8 +166,16 @@ func (m *Marshaller) dynamicpbMessage(encoder *jsontext.Encoder, msg *dynamicpb.
 		return true
 	})
 
-	slices.SortFunc(kvl, func(a, b *kv) bool {
-		return a.key < b.key
+	slices.SortFunc(kvl, func(a, b *kv) int {
+		if a.key < b.key {
+			return -1
+		}
+
+		if a.key == b.key {
+			return 0
+		}
+
+		return 1
 	})
 
 	cnt, err := json.Marshal(kvl, json.WithMarshalers(m.marshallers))

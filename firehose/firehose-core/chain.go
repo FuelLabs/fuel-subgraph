@@ -151,6 +151,8 @@ type Chain[B Block] struct {
 	//
 	BlockEncoder BlockEncoder
 
+	DefaultBlockType string
+
 	RegisterSubstreamsExtensions func() (wasm.WASMExtensioner, error)
 }
 

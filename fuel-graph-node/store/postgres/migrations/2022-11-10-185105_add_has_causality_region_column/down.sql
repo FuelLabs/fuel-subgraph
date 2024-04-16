@@ -1,1 +1,0 @@
-alter table subgraphs.subgraph_manifest drop column entities_with_causality_region;

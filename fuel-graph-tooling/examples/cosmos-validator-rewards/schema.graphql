@@ -1,5 +1,0 @@
-type Reward @entity {
-  id: ID!
-  amount: String
-  validator: String
-}

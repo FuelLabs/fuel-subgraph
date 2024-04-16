@@ -1,4 +1,0 @@
-type TestResult @entity {
-  id: ID!
-  message: String!
-}

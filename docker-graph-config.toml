@@ -11,10 +11,10 @@ pool_size = 10
 [chains]
 ingestor = "block_ingestor_node"
 
-[chains.fuelnet]
+[chains.substreams]
 shard = "primary"
-protocol = "fuel"
+protocol = "substreams"
 provider = [
-  { label = "fuel", details = { type = "firehose", url = "http://firehose:10015" } },
+  { label = "substreams", details = { type = "substreams", url = "http://firehose:10016" } },
 ]
 

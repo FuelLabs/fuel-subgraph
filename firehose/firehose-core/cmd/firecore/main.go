@@ -19,6 +19,7 @@ func main() {
 		BlockFactory:         func() firecore.Block { return new(pbbstream.Block) },
 		ConsoleReaderFactory: firecore.NewConsoleReader,
 		Tools:                &firecore.ToolsConfig[*pbbstream.Block]{},
+		DefaultBlockType:     "sf.fuel.type.v1.Block",
 	})
 }
 

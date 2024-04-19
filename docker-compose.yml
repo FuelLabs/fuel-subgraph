@@ -1,12 +1,12 @@
-version: '3'
+version: "3"
 services:
   firehose:
     build:
       context: firehose
     ports:
-      - '10015:10015'
-      - '10016:10016'
-      - '10017:10017'
+      - "10015:10015"
+      - "10016:10016"
+      - "10017:10017"
     volumes:
-      - './data/firehose:/data/storage_dir'
+      - "./data/firehose:/data/storage_dir"
     command: beta-5.fuel.network

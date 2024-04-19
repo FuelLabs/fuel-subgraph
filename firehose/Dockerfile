@@ -18,6 +18,8 @@ RUN cargo build --release
 FROM golang:1.22-alpine AS go_chef
 
 WORKDIR /app
+COPY ./firehose-core/devel/standard/bootstrap.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
 FROM go_chef as go_build
 COPY ./firehose-core/ ./firehose-core/
@@ -41,9 +43,6 @@ FROM debian
 COPY --from=extract_builder /app/target/release/firehose-extract ./app/firehose-extract
 COPY --from=go_build /firehose-core/firecore ./app/firecore
 
-
 # Additional setup if needed
-COPY firehose-core/devel/standard/bootstrap.sh /app/start.sh
-RUN chmod +x /app/start.sh
 
 ENTRYPOINT [ "/app/start.sh" ]

@@ -7,6 +7,8 @@ FIREFUEL_BIN="/app/firecore"
 STORAGE_DIR="/data/storage_dir"
 CHAIN_ID="$1"
 
+COMMON_LIVE_BLOCKS_ADDR="$(hostname -I | awk '{print $1}'):10024"
+
 if [ -z "$CHAIN_ID" ]; then
 	echo "Usage: $0 CHAIN_ID"
 	return 1
@@ -36,8 +38,8 @@ start:
      reader-node-path: "$FIREHOSE_EXTRACT_BIN"
      reader-node-arguments: $CHAIN_ID $LAST_HEIGHT
 
-     common-live-blocks-addr: "localhost:10024"
-     reader-node-grpc-listen-addr: localhost:10024
+     common-live-blocks-addr: "$COMMON_LIVE_BLOCKS_ADDR"
+     reader-node-grpc-listen-addr: "$COMMON_LIVE_BLOCKS_ADDR"
 
 END
 

@@ -2,7 +2,7 @@ version: '3'
 services:
   firehose:
     build:
-      dockerfile: firehose/Dockerfile
+      context: ./firehose
     ports:
       - '10015:10015'
       - '10016:10016'

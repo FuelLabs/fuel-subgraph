@@ -2,13 +2,13 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "fuel-indexer.fullname" . }}
+  name: {{ include "fuel-subgraph.fullname" . }}
   labels:
     release: {{ .Values.app.serviceMonitor.prometheusRelease }}
 spec:
   selector:
     matchLabels:
-      {{- include "fuel-indexer.labels" . | nindent 4 }}
+      {{- include "fuel-subgraph.labels" . | nindent 4 }}
   endpoints:
     - path: /api/metrics
       port: http

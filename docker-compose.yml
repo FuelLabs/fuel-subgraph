@@ -4,9 +4,9 @@ services:
     build:
       context: ./firehose
     ports:
-      - '10015:10015' # Firehose API
-      - '10016:10016' # Firehose Websocket
-      - '10017:10017' # Firehose Websocket (SSL)
+      - '10015:10015'
+      - '10016:10016'
+      - '10017:10017'
     volumes:
       - './data/firehose:/data/storage_dir'
     command: beta-5.fuel.network

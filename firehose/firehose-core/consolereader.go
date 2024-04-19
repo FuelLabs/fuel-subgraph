@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -133,6 +134,11 @@ func (r *ConsoleReader) ReadBlock() (out *pbbstream.Block, err error) {
 		return nil, err
 	}
 
+	err = writeUint32ToFile("last_height.txt", out.GetFirehoseBlockNumber())
+	if err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 
@@ -232,4 +238,26 @@ func splitInBoundedChunks(line string, count int) ([]string, error) {
 	}
 
 	return chunks, nil
+}
+
+func writeUint32ToFile(filePath string, num uint64) error {
+	file, err := os.Create(filePath)
+
+	if err != nil {
+		return fmt.Errorf("error creating file: %w", err)
+	}
+
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("error closing file: %w", closeErr)
+		}
+	}()
+
+	_, writeErr := fmt.Fprint(file, num)
+
+	if writeErr != nil {
+		return fmt.Errorf("error writing to file: %w", writeErr)
+	}
+
+	return nil
 }

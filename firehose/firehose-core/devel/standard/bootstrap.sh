@@ -35,6 +35,10 @@ start:
      common-first-streamable-block: 1
      reader-node-path: "$FIREHOSE_EXTRACT_BIN"
      reader-node-arguments: $CHAIN_ID $LAST_HEIGHT
+
+     common-live-blocks-addr: "localhost:10024"
+     reader-node-grpc-listen-addr: localhost:10024
+
 END
 
 cd "$STORAGE_DIR"

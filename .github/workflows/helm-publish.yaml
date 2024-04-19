@@ -1,11 +1,11 @@
 name: Build and publish Helm Chart
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - "helm/fuel-subgraph/Chart.yaml"
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "deploy: false|true"
+        required: false
 
 permissions:
   contents: read

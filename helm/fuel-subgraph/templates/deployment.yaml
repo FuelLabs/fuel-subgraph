@@ -62,7 +62,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 10
           volumeMounts:
-            - name: {{ include "fuel-subgraph.fullname" . }}
+            - name: fuel-subgraph-vol
               mountPath: "/mnt/db"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

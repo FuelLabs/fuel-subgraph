@@ -1,25 +1,25 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: { { include "fuel-subgraph.fullname" . } }
-  labels: { { - include "fuel-subgraph.labels" . | nindent 4 } }
+  name: {{ include "fuel-subgraph.fullname" . }}
+  labels: {{- include "fuel-subgraph.labels" . | nindent 4 }}
 spec:
-  type: { { .Values.service.type } }
+  type: {{ .Values.service.type }}
   ports:
-    - port: { { .Values.service.port } }
+    - port: {{ .Values.service.port }}
       targetPort: http
       protocol: TCP
       name: http
-    - port: { { .Values.firehose.port1 } }
+    - port: {{ .Values.firehose.port1 }}
       targetPort: firehose_port1
       protocol: TCP
       name: firehose_port1
-    - port: { { .Values.firehose.port2 } }
+    - port: {{ .Values.firehose.port2 }}
       targetPort: firehose_port2
       protocol: TCP
       name: firehose_port2
-    - port: { { .Values.firehose.port3 } }
+    - port: {{ .Values.firehose.port3 }}
       targetPort: firehose_port3
       protocol: TCP
       name: firehose_port3
-  selector: { { - include "fuel-subgraph.selectorLabels" . | nindent 4 } }
+  selector: {{- include "fuel-subgraph.selectorLabels" . | nindent 4 }}

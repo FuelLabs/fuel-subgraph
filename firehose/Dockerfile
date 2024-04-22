@@ -4,15 +4,15 @@ WORKDIR /app
 
 ## Planner stage
 FROM chef AS planner
-COPY ./firehose-extract/ .
+COPY ./firehose-extract/ ./firehose-extract/
 RUN cargo chef prepare --recipe-path recipe.json
 
 # Extract builder stage
 FROM chef AS extract_builder
 RUN apt update && apt install -y protobuf-compiler
-COPY --from=planner app/recipe.json recipe.json
+COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
-COPY ./firehose-extract/ .
+COPY ./firehose-extract/ ./firehose-extract/
 RUN cargo build --release
 
 FROM golang:1.22-alpine as go_build

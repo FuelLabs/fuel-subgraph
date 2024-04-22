@@ -45,13 +45,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-            - name: firehose_port1
+            - name: firehose-port-1
               containerPort: {{ .Values.firehose.port1 }}
               protocol: TCP
-            - name: firehose_port2
+            - name: firehose-port-2
               containerPort: {{ .Values.firehose.port2 }}
               protocol: TCP
-            - name: firehose_port3
+            - name: firehose-port-3
               containerPort: {{ .Values.firehose.port3 }}
               protocol: TCP
           livenessProbe:
@@ -62,7 +62,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 10
           volumeMounts:
-            - name: {{ include "fuel-subgraph.fullname" . }}
+            - name: fuel-subgraph-vol
               mountPath: "/mnt/db"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

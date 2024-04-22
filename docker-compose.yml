@@ -3,6 +3,9 @@ services:
   firehose:
     build:
       context: firehose
+      dockerfile: Dockerfile
+#    image: 'ghcr.io/fuellabs/fuel-subgraph:cc2be21'
+#    platform: linux/amd64
     ports:
       - "10015:10015"
       - "10016:10016"

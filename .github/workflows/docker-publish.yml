@@ -1,4 +1,4 @@
-name: Build ad publish Docker image
+name: Build and publish Docker image
 
 on:
   push:
@@ -28,5 +28,6 @@ jobs:
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          image: ghcr.io/fuellabs/fuel-graph-node
-          dockerfile: fuel-graph-node/Dockerfile
+          image: ghcr.io/fuellabs/fuel-subgraph
+          dockerfile: firehose/Dockerfile
+          context: firehose

@@ -1,0 +1,15 @@
+*~
+.envrc
+.env.release
+.DS_Store
+.idea
+.vscode
+target
+.goreleaser.SOURCE_ME.sh
+/dist
+/substreams
+.fleet
+/codegen/test_substreams/src/
+/build
+/sink-data
+replay.log

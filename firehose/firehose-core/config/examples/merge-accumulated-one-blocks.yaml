@@ -1,0 +1,36 @@
+start:
+  args:
+  - merger
+  flags:
+    log-to-file: false
+    data-dir: /data/<chain identifier>/firehose-data
+
+    # Use the first rounded block number as the starting point from the one-blocks file you
+    # want to merge. For example, if you have in your one-blocks folder (in this config
+    # it would be /data/<chain identifier>/firehose-data/storage/one-blocks) the files:
+    #   - 0005222014-a4f7d8b748525f5f-9c0632eec4c64c8b-5221815-default.dbin.zst
+    #   - 0005222015-ba4f7d8b748525f5f-ac0632eec4c64c8b-5221817-default.dbin.zst
+    #   - 0005222016-c4f7d8b748525f5f-ac0632eec4c64c8b-5221817-default.dbin.zst
+    #   - ...
+    #
+    # Then the upper 100s rounded block number is 5222100 so you would use
+    # the config value 'common-first-streamable-block: 5222100'.
+    #
+    # If the block you have is exactly 5222100, then you should use 5222100 as
+    # the starting point.
+    #
+    # You can use `find /data/<chain identifier>/firehose-data/storage/one-blocks -name "*.zst" | sort | head -1`
+    # (or your appropriate 'common-one-block-store-url' value) to find the first block
+    # you have. The block number is the first value in the file name (the others are
+    # block's hash, last irreversible block's hash, last irreversible block's num).
+    #
+    # The range before the staring point will need to be reprocessed based on
+    # the chain's recovery mechanism which is out of scope here.
+    common-first-streamable-block: 100
+
+    # You should set this to the last block number you have in your one-blocks folder
+    # rounded down to 100s.
+    #
+    # For example, if you have in your one-blocks folder last block 8725,
+    # then you should use 8700 as the stop block.
+    merger-stop-block: 8700

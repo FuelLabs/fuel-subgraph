@@ -1,0 +1,7 @@
+.idea
+/build
+/dist
+.envrc
+.env
+.DS_Store
+firehose-data*

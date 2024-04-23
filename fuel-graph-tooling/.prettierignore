@@ -1,8 +1,0 @@
-.changeset
-dist
-build
-generated
-packages/cli/tests/cli/init
-packages/cli/tests/cli/validation
-packages/cli/tests/cli/add
-pnpm-lock.yaml

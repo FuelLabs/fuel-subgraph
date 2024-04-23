@@ -1,0 +1,57 @@
+specVersion: v0.1.0
+package:
+  name: my_package
+  version: v1.2.3
+
+protobuf:
+  files:
+    - ./code/pancakeswap.proto
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ./code/pcs_substreams_bg.wasm
+
+modules:
+  - name: map_pairs
+    kind: map
+    inputs:
+      - params: string
+      - source: sf.ethereum.type.v1.Block
+    output:
+      type: proto:pcs.types.v1.Pairs
+
+  - name: build_pairs_state
+    kind: store
+    updatePolicy: set
+    valueType: bytes
+    inputs:
+      - map: map_pairs
+
+  - name: map_reserves
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v1.Block
+      - store: build_pairs_state
+    output:
+      type: proto:pcs.types.v1.Reserves
+
+  - name: map_block_to_tokens
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v1.Block
+    output:
+      type: proto:sf.substreams.tokens.v1.Tokens
+
+params:
+  map_pairs: my default params
+
+network: antelope
+
+sink:
+  module: map_block_to_tokens
+  type: pcs.services.v1.WASMQueryService
+  config:
+    addSomePancakes: true
+    someBytes: "@@./test_manifest.yaml"
+    someString: "@./test_manifest.yaml"

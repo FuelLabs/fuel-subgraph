@@ -1,0 +1,6 @@
+global:
+  binary: firecore
+  language: golang
+  variant: application
+release:
+  goreleaser-docker-image: goreleaser/goreleaser-cross:v1.22

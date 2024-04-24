@@ -34,9 +34,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "./app/start.sh" ]
+          args: ['{{ .Values.app.chain_id }}']
           env:
             - name: CHAIN_ID
-              value: "beta-5.fuel.network"
+              value: {{ .Values.app.chain_id }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

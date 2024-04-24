@@ -91,6 +91,7 @@ tolerations: []
 affinity: {}
 
 app:
+  chain_id: example.network
   volume:
     storageclass: gp3-generic
     accessmodes: ReadWriteOnce

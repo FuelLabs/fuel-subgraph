@@ -89,6 +89,9 @@ func (sf *StreamFactory) New(
 			zap.String("user_id", auth.UserID()),
 			zap.String("real_ip", auth.RealIP()),
 		)
+		if auth["x-deployment-id"] != "" {
+			fields = append(fields, zap.String("deployment_id", auth["x-deployment-id"]))
+		}
 	}
 
 	reqLogger.Info("processing incoming blocks request", fields...)

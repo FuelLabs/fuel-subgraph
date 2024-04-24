@@ -250,9 +250,13 @@ func PrintBStreamBlock(b *pbbstream.Block, printTransactions bool, out io.Writer
 	_, err := out.Write(
 		[]byte(
 			fmt.Sprintf(
-				"Block #%d (%s)\n",
+				"Block #%d (%s)\n - Parent: #%d (%s)\n  - LIB: #%d\n  - Time: %s\n",
 				b.Number,
 				b.Id,
+				b.ParentNum,
+				b.ParentId,
+				b.LibNum,
+				b.Timestamp.AsTime(),
 			),
 		),
 	)

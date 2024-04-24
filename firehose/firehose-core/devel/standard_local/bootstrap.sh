@@ -32,8 +32,8 @@ start:
      reader-node-path: "../../../firehose-extract/target/debug/firehose-extract"
      reader-node-arguments: $CHAIN_ID $LAST_HEIGHT
 
-     common-live-blocks-addr: "localhost:10024"
-     reader-node-grpc-listen-addr: "localhost:10024"
+     common-live-blocks-addr: localhost:10024
+     reader-node-grpc-listen-addr: localhost:10024
 
 END
 

@@ -8,8 +8,9 @@ Operators, you should copy/paste content of this content straight to your projec
 
 If you were at `firehose-core` version `1.0.0` and are bumping to `1.1.0`, you should copy the content between those 2 version to your own repository, replacing placeholder value `fire{chain}` with your chain's own binary.
 
-## Unreleased
+## v1.3.6
 
+* bump substreams to v1.5.5 with fix in wazero to prevent process freezing on certain substreams
 * bump go-generics to v3.4.0
 
 ## v1.3.5
@@ -110,14 +111,18 @@ If you were at `firehose-core` version `1.0.0` and are bumping to `1.1.0`, you s
 
 * Fixed `tools check merged-blocks` to be able to run without a block range provided.
 
-* Added API Key authentication to `client.NewFirehoseFetchClient` and `client.NewFirehoseClient`.
-
-  > [!NOTE]
-  > If you were using `github.com/streamingfast/firehose-core/firehose/client.NewFirehoseFetchClient` or `github.com/streamingfast/firehose-core/firehose/client.NewFirehoseStreamClient`, this will be a minor breaking change, refer to [upgrade notes](./UPDATE.md#v125) for details if it affects you.
+* Added API Key based authentication to `tools firehose-client` and `tools firehose-single-block-client`, specify the value through environment variable `FIREHOSE_API_KEY` (you can use flag `--api-key-env-var` to change variable's name to something else than `FIREHOSE_API_KEY`).
 
 * Fixed `tools check merged-blocks` examples using block range (range should be specified as `[<start>]?:[<end>]`).
 
 * Added `--substreams-tier2-max-concurrent-requests` to limit the number of concurrent requests to the tier2 Substreams service.
+
+### Library `firehose-core`
+
+* Added API Key authentication to `client.NewFirehoseFetchClient` and `client.NewFirehoseClient`.
+
+  > [!NOTE]
+  > If you were using `github.com/streamingfast/firehose-core/firehose/client.NewFirehoseFetchClient` or `github.com/streamingfast/firehose-core/firehose/client.NewFirehoseStreamClient`, this will be a minor breaking change, refer to [upgrade notes](./UPDATE.md#v125) for details if it affects you.
 
 ## v1.2.4
 

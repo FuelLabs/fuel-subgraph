@@ -3,8 +3,6 @@ package blockpoller
 import (
 	"context"
 	"fmt"
-	"math"
-
 	"github.com/streamingfast/bstream"
 	"github.com/streamingfast/bstream/forkable"
 	pbbstream "github.com/streamingfast/bstream/pb/sf/bstream/v1"
@@ -13,6 +11,7 @@ import (
 	"github.com/streamingfast/firehose-core/internal/utils"
 	"github.com/streamingfast/shutter"
 	"go.uber.org/zap"
+	"math"
 )
 
 type block struct {
@@ -39,6 +38,8 @@ type BlockPoller struct {
 	logger *zap.Logger
 
 	optimisticallyPolledBlocks map[uint64]*BlockItem
+
+	fetching bool
 }
 
 func New(
@@ -103,7 +104,21 @@ func (p *BlockPoller) run(resolvedStartBlock bstream.BlockRef, numberOfBlockToFe
 		if hashToFetch != nil {
 			fetchedBlock, err = p.fetchBlockWithHash(blockToFetch, *hashToFetch)
 		} else {
-			fetchedBlock, err = p.fetchBlock(blockToFetch, numberOfBlockToFetch)
+
+			for {
+				requestedBlockItem := p.requestBlock(blockToFetch, numberOfBlockToFetch)
+				fetchedBlockItem := <-requestedBlockItem
+
+				if fetchedBlockItem.skipped {
+					p.logger.Info("block was skipped", zap.Uint64("block_num", fetchedBlockItem.blockNumber))
+					blockToFetch++
+					continue
+				}
+
+				fetchedBlock = fetchedBlockItem.block
+				break
+			}
+
 		}
 
 		if err != nil {
@@ -179,6 +194,7 @@ type BlockItem struct {
 
 func (p *BlockPoller) loadNextBlocks(requestedBlock uint64, numberOfBlockToFetch int) error {
 	p.optimisticallyPolledBlocks = map[uint64]*BlockItem{}
+	p.fetching = true
 
 	nailer := dhammer.NewNailer(10, func(ctx context.Context, blockToFetch uint64) (*BlockItem, error) {
 		var blockItem *BlockItem

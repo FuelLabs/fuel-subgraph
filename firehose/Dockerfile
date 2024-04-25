@@ -10,8 +10,8 @@ RUN cargo chef prepare --recipe-path recipe.json
 # Stage 3: Extract builder
 FROM chef AS extract_builder
 RUN apt update && apt install -y protobuf-compiler
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+COPY --from=planner /app/recipe.json /app/
+RUN cargo chef cook --release --recipe-path /app/recipe.json
 COPY ./firehose-extract/ /app/
 RUN cargo build --release
 
@@ -32,5 +32,17 @@ COPY --from=go_build /app/firehose-core/firecore /app/firecore
 COPY --from=go_build /app/firehose-core/devel/standard/bootstrap.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# Additional setup if needed
-ENTRYPOINT [ "/app/start.sh" ]
+# Set environment variables for port configuration
+ENV FIREHOSE_PORT_1=10015
+ENV FIREHOSE_PORT_2=10016
+ENV FIREHOSE_PORT_3=10017
+# Expose ports
+EXPOSE $FIREHOSE_PORT_1
+EXPOSE $FIREHOSE_PORT_2
+EXPOSE $FIREHOSE_PORT_3
+
+# Set volume
+VOLUME ["/data/storage_dir"]
+
+ENTRYPOINT ["/app/start.sh"]
+CMD ["$CHAIN_ID"]

@@ -42,15 +42,6 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-            - name: firehose-port-1
-              containerPort: {{ .Values.firehose.port1 }}
-              protocol: TCP
-            - name: firehose-port-2
-              containerPort: {{ .Values.firehose.port2 }}
-              protocol: TCP
-            - name: firehose-port-3
-              containerPort: {{ .Values.firehose.port3 }}
-              protocol: TCP
           livenessProbe:
             httpGet:
               path: /

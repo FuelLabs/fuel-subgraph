@@ -40,12 +40,7 @@ securityContext:
 
 service:
   type: ClusterIP
-  port: 8080
-
-firehose:
-  port1: 10015
-  port2: 10016
-  port3: 10017
+  port: 10016
 
 ingress:
   enabled: false

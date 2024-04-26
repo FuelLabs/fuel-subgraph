@@ -10,16 +10,4 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-    - port: {{ .Values.firehose.port1 }}
-      targetPort: firehose-port-1
-      protocol: TCP
-      name: firehose-port-1
-    - port: {{ .Values.firehose.port2 }}
-      targetPort: firehose-port-2
-      protocol: TCP
-      name: firehose-port-2
-    - port: {{ .Values.firehose.port3 }}
-      targetPort: firehose-port-3
-      protocol: TCP
-      name: firehose-port-3
   selector: {{- include "fuel-subgraph.selectorLabels" . | nindent 4 }}

@@ -9,21 +9,23 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 # Stage 3: Extract builder
 FROM chef AS extract_builder
-RUN apt update && apt install -y protobuf-compiler
 COPY --from=planner /app/recipe.json /app/
-RUN cargo chef cook --release --recipe-path /app/recipe.json
+RUN apt-get update && apt-get install -y protobuf-compiler \
+    && cargo chef cook --release --recipe-path /app/recipe.json
 COPY ./firehose-extract/ /app/
 RUN cargo build --release
 
 # Stage 4: Go build
 FROM golang:1.22-alpine as go_build
+WORKDIR /app/firehose-core
+COPY ./firehose-core/go.mod ./firehose-core/go.sum ./
+COPY ./substreams/go.mod ./substreams/go.sum ./
+RUN go mod download
 COPY ./firehose-core/ /app/firehose-core/
 COPY ./substreams/ /app/substreams/
-WORKDIR /app/firehose-core
-RUN go mod download
 ARG VERSION="dev"
-RUN apk --no-cache add git
-RUN go build -v -ldflags "-X main.version=${VERSION}" -o /app/firehose-core/firecore ./cmd/firecore
+RUN apk --no-cache add git \
+    && go build -v -ldflags "-X main.version=${VERSION}" -o /app/firehose-core/firecore ./cmd/firecore
 
 # Stage 5: Final stage
 FROM debian
@@ -36,6 +38,7 @@ RUN chmod +x /app/start.sh
 ENV FIREHOSE_PORT_1=10015
 ENV FIREHOSE_PORT_2=10016
 ENV FIREHOSE_PORT_3=10017
+
 # Expose ports
 EXPOSE $FIREHOSE_PORT_1
 EXPOSE $FIREHOSE_PORT_2

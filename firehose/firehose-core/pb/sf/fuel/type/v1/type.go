@@ -31,5 +31,5 @@ func (b *Block) GetFirehoseBlockVersion() int32 {
 }
 
 func (b *Block) GetFirehoseBlockLIBNum() uint64 {
-	return b.GetFirehoseBlockNumber()
+	return b.GetFirehoseBlockNumber() - 1
 }

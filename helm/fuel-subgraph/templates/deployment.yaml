@@ -39,7 +39,7 @@ spec:
             - name: CHAIN_ID
               value: {{ .Values.app.chain_id }}
           ports:
-            - name: http
+            - name: firehose
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:

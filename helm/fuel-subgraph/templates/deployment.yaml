@@ -44,8 +44,8 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /health
+              port: firehose
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 10
